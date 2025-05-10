@@ -1,0 +1,470 @@
+import React, { useEffect, useState } from 'react';
+import Timestamp from "../timestamp";
+import modelService from './model-service';
+import axios from 'axios';
+import parseLinks from '../links/parseLinks';
+
+export default function PostPage({ onPageChange, selectedPostId, selectedCommunityId }) {
+	const [posts, setPosts] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState(null);
+	const [sortMethod, setSortMethod] = useState('newest');
+	// const [comments, setComments] = useState([]);
+
+	// Load posts when component mounts or when selectedPostId/selectedCommunityId changes
+	useEffect(() => {
+		async function fetchPosts() {
+			try {
+				setLoading(true);
+
+				// If modelService data is not loaded yet, wait for it
+				if (modelService.data.posts.length === 0) {
+					await modelService.refreshData();
+				}
+
+				// If a specific post ID is selected, fetch that post
+				if (selectedPostId) {
+					const post = modelService.data.posts.find(p => p._id === selectedPostId);
+					if (post) {
+						setPosts([post]);
+						// Fetch comments for this post
+						fetchCommentsForPost(post);
+					} else {
+						setError('Post not found');
+					}
+				}
+				// If a community is selected, filter posts for that community
+				else if (selectedCommunityId) {
+					const community = modelService.data.communities.find(c => c._id === selectedCommunityId);
+					if (community) {
+						const communityPosts = modelService.data.posts.filter(post =>
+							community.postIDs && community.postIDs.includes(post._id)
+						);
+						setPosts(communityPosts);
+					} else {
+						setError('Community not found');
+					}
+				}
+				// Otherwise, show all posts
+				else {
+					setPosts(modelService.data.posts);
+				}
+
+				setLoading(false);
+			} catch (err) {
+				console.error('Error fetching posts:', err);
+				setError('Failed to load posts. Please try again later.');
+				setLoading(false);
+			}
+		}
+
+		fetchPosts();
+	}, [selectedPostId, selectedCommunityId]);
+
+	// Fetch comments for a specific post
+	const fetchCommentsForPost = async (post) => {
+		try {
+			// Since we've already loaded all comments, we can filter them
+			// const postComments = modelService.data.comments.filter(comment =>
+			// 	post.commentIDs && post.commentIDs.includes(comment._id)
+			// );
+			// setComments(postComments);
+		} catch (err) {
+			console.error('Error fetching comments:', err);
+		}
+	};
+
+	// Increment view count when viewing a specific post
+	useEffect(() => {
+		async function incrementViewCount() {
+			if (selectedPostId) {
+				try {
+					// We just need to fetch the post - the server will increment the view count
+					await axios.get(`http://localhost:8000/api/posts/${selectedPostId}`);
+
+					// Refresh the data to get updated view count
+					await modelService.refreshData();
+
+					// Update the post in our state
+					const updatedPost = modelService.data.posts.find(p => p._id === selectedPostId);
+					if (updatedPost) {
+						setPosts([updatedPost]);
+					}
+				} catch (err) {
+					console.error('Error incrementing view count:', err);
+				}
+			}
+		}
+
+		incrementViewCount();
+	}, [selectedPostId]);
+
+	// Handle sort method change
+	const handleSortChange = (method) => {
+		setSortMethod(method);
+	};
+
+	// Make sort handler available to parent component (TopBar)
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			window.handlePostSort = handleSortChange;
+			window.currentSortMethod = sortMethod;
+		}
+	}, [sortMethod]);
+
+	// Sort posts based on the current sort method
+	const getSortedPosts = () => {
+		if (!posts || posts.length === 0) return [];
+
+		switch (sortMethod) {
+			case 'newest':
+				return [...posts].sort((a, b) => new Date(b.postedDate) - new Date(a.postedDate));
+			case 'oldest':
+				return [...posts].sort((a, b) => new Date(a.postedDate) - new Date(b.postedDate));
+			case 'active':
+				// Sort by most recent comment
+				// Create array with most recent comment for each post
+				let sorted_comments = [];
+				// Array of recent comments that don't get sorted
+				let raw_comments = [];
+				// Array of posts whose indexes matches the comments of temp
+				let raw_posts = [];
+				// Array of sorted posts
+				let sorted_posts = [];
+
+				// Filling comment arrays and post arrays
+				for (let i = 0; i < posts.length; i++) {
+					const recentComment = findMostRecentComment(posts[i]);
+					sorted_comments.push(recentComment);
+					raw_comments.push(recentComment);
+					raw_posts.push(posts[i]);
+				}
+
+				// Sort one comment array by date
+				sorted_comments.sort((a, b) => {
+					if (!a && !b) return 0;
+					if (!a) return 1;
+					if (!b) return -1;
+					return new Date(b.commentedDate) - new Date(a.commentedDate);
+				});
+
+				// Match sorted comments with their posts
+				for (let i = 0; i < sorted_comments.length; i++) {
+					for (let j = 0; j < raw_comments.length; j++) {
+						if (sorted_comments[i] === raw_comments[j]) {
+							sorted_posts.push(raw_posts[j]);
+							break;
+						}
+					}
+				}
+
+				return sorted_posts;
+			default:
+				return posts;
+		}
+	};
+
+	// Find most recent comment for a post (recursively check nested comments)
+	const findMostRecentComment = (post) => {
+		if (!post.commentIDs || post.commentIDs.length === 0) {
+			return null;
+		}
+
+		// Get all comments for this post
+		const postComments = post.commentIDs.map(id =>
+			modelService.data.comments.find(c => c._id === id)
+		).filter(Boolean);
+
+		if (postComments.length === 0) {
+			return null;
+		}
+
+		// Start with the first comment as most recent
+		let mostRecentComment = postComments[0];
+
+		// Check all comments and their nested comments
+		for (const comment of postComments) {
+			// Check if this comment is more recent
+			if (new Date(comment.commentedDate) > new Date(mostRecentComment.commentedDate)) {
+				mostRecentComment = comment;
+			}
+
+			// Check nested comments
+			if (comment.commentIDs && comment.commentIDs.length > 0) {
+				const mostRecentNested = findMostRecentNestedComment(comment);
+				if (mostRecentNested && new Date(mostRecentNested.commentedDate) > new Date(mostRecentComment.commentedDate)) {
+					mostRecentComment = mostRecentNested;
+				}
+			}
+		}
+
+		return mostRecentComment;
+	};
+
+	// Find the most recent nested comment
+	const findMostRecentNestedComment = (comment) => {
+		if (!comment.commentIDs || comment.commentIDs.length === 0) {
+			return null;
+		}
+
+		// Get all reply comments
+		const replyComments = comment.commentIDs.map(id =>
+			modelService.data.comments.find(c => c._id === id)
+		).filter(Boolean);
+
+		if (replyComments.length === 0) {
+			return null;
+		}
+
+		// Start with the first reply as most recent
+		let mostRecentReply = replyComments[0];
+
+		// Check all replies and their nested replies
+		for (const reply of replyComments) {
+			// Check if this reply is more recent
+			if (new Date(reply.commentedDate) > new Date(mostRecentReply.commentedDate)) {
+				mostRecentReply = reply;
+			}
+
+			// Recursively check nested replies
+			if (reply.commentIDs && reply.commentIDs.length > 0) {
+				const mostRecentNested = findMostRecentNestedComment(reply);
+				if (mostRecentNested && new Date(mostRecentNested.commentedDate) > new Date(mostRecentReply.commentedDate)) {
+					mostRecentReply = mostRecentNested;
+				}
+			}
+		}
+
+		return mostRecentReply;
+	};
+
+	// Truncate post content for list view
+	const truncateContent = (content, maxLength = 100) => {
+		return content.length > maxLength ? content.substring(0, maxLength) + '...' : content;
+	};
+
+	// Handle post click
+	const handlePostClick = (postId) => {
+		onPageChange('postPage', postId);
+	};
+
+	// Handle reply click
+	const handleReplyClick = (commentId) => {
+		onPageChange('createComment', selectedPostId, null, commentId);
+	};
+
+	// Render post list
+	const renderPostList = () => {
+		const sortedPosts = getSortedPosts();
+
+		return sortedPosts.map(post => {
+			// Find the community for this post
+			const community = modelService.data.communities.find(c =>
+				c.postIDs && c.postIDs.includes(post._id)
+			);
+
+			// Find the flair for this post
+			const flairContent = post.linkFlairID ? modelService.getFlairContent(post.linkFlairID) : 'No Flair';
+
+			// Count total comments (including replies)
+			const countComments = (post) => {
+				let count = post.commentIDs ? post.commentIDs.length : 0;
+
+				// Add counts of nested comments
+				if (post.commentIDs) {
+					post.commentIDs.forEach(commentId => {
+						const comment = modelService.data.comments.find(c => c._id === commentId);
+						if (comment && comment.commentIDs) {
+							count += countNestedComments(comment);
+						}
+					});
+				}
+
+				return count;
+			};
+
+			// Helper to count nested comments
+			const countNestedComments = (comment) => {
+				let count = comment.commentIDs ? comment.commentIDs.length : 0;
+
+				if (comment.commentIDs) {
+					comment.commentIDs.forEach(replyId => {
+						const reply = modelService.data.comments.find(c => c._id === replyId);
+						if (reply && reply.commentIDs) {
+							count += countNestedComments(reply);
+						}
+					});
+				}
+
+				return count;
+			};
+
+			return (
+				<div key={post._id} className="post-item cursor-pointer hover:bg-gray-100" onClick={() => handlePostClick(post._id)}>
+					<p className="post-header">
+						{!selectedCommunityId && community ?
+							`${community.name} | ` :
+							''
+						}Posted by: {post.postedBy} | {Timestamp(new Date(post.postedDate))}
+					</p>
+					<h2 className="post-name">
+						{post.title}
+					</h2>
+
+					<h4 className="flair-name">
+						{flairContent}
+					</h4>
+
+					<p className="post-content" dangerouslySetInnerHTML={{ __html: parseLinks(truncateContent(post.content)) }}></p>
+
+					<p className="post-subheading">
+						Views: {post.views} | Comments: {countComments(post)}
+					</p>
+					<hr />
+				</div>
+			);
+		});
+	};
+
+	// Sort comments by newest first
+	const sortCommentsByDate = (commentIds) => {
+		if (!commentIds || commentIds.length === 0) return [];
+
+		return commentIds
+			.map(id => modelService.data.comments.find(c => c._id === id))
+			.filter(Boolean)
+			.sort((a, b) => new Date(b.commentedDate) - new Date(a.commentedDate))
+			.map(comment => comment._id);
+	};
+
+	// Recursive function to render comments and their replies
+	const renderComments = (commentIds, indentLevel = 0) => {
+		if (!commentIds || commentIds.length === 0) return null;
+
+		// Sort comments by newest first
+		const sortedCommentIds = sortCommentsByDate(commentIds);
+
+		return sortedCommentIds.map(commentId => {
+			const comment = modelService.data.comments.find(c => c._id === commentId);
+			if (!comment) return null;
+
+			const indentStyle = {
+				marginLeft: `${indentLevel * 20}px`,
+				borderLeft: indentLevel > 0 ? `2px solid #ccc` : 'none',
+				paddingLeft: indentLevel > 0 ? '10px' : '0'
+			};
+
+			return (
+				<div key={commentId} className="comment" style={indentStyle}>
+					<p dangerouslySetInnerHTML={{ __html: parseLinks(comment.content) }}></p>
+					<div className="comment-footer">
+						<small>
+							By {comment.commentedBy} | {Timestamp(new Date(comment.commentedDate))}
+						</small>
+						<button
+							className="reply-button"
+							onClick={(e) => {
+								e.stopPropagation(); // Prevent post click event
+								handleReplyClick(commentId);
+							}}
+						>
+							Reply
+						</button>
+					</div>
+
+					{/* Render nested comments with increased indent */}
+					{comment.commentIDs && comment.commentIDs.length > 0 && (
+						<div className="nested-comments">
+							{renderComments(comment.commentIDs, indentLevel + 1)}
+						</div>
+					)}
+				</div>
+			);
+		});
+	};
+
+	// Render single post with comments
+	const renderSinglePost = (post) => {
+		// Find the community for this post
+		const community = modelService.data.communities.find(c =>
+			c.postIDs && c.postIDs.includes(post._id)
+		);
+
+		// Find the flair for this post
+		const flairContent = post.linkFlairID ? modelService.getFlairContent(post.linkFlairID) : 'No Flair';
+
+		// Count total comments (including replies)
+		const countComments = (post) => {
+			let count = post.commentIDs ? post.commentIDs.length : 0;
+
+			// Add counts of nested comments
+			if (post.commentIDs) {
+				post.commentIDs.forEach(commentId => {
+					const comment = modelService.data.comments.find(c => c._id === commentId);
+					if (comment && comment.commentIDs) {
+						count += countNestedComments(comment);
+					}
+				});
+			}
+
+			return count;
+		};
+
+		// Helper to count nested comments
+		const countNestedComments = (comment) => {
+			let count = comment.commentIDs ? comment.commentIDs.length : 0;
+
+			if (comment.commentIDs) {
+				comment.commentIDs.forEach(replyId => {
+					const reply = modelService.data.comments.find(c => c._id === replyId);
+					if (reply && reply.commentIDs) {
+						count += countNestedComments(reply);
+					}
+				});
+			}
+
+			return count;
+		};
+
+		return (
+			<div className="post-item">
+				<p className="post-header">
+					{community ? community.name : 'Unknown Community'} | Posted by: {post.postedBy} | {Timestamp(new Date(post.postedDate))}
+				</p>
+				<h2 className="post-name">{post.title}</h2>
+
+				<h4 className="flair-name">
+					{flairContent}
+				</h4>
+
+				<p className="post-content" dangerouslySetInnerHTML={{ __html: parseLinks(post.content) }}></p>
+				<p className="post-subheading">
+					Views: {post.views} | Comments: {countComments(post)}
+				</p>
+
+				<button
+					className="comment-button button"
+					onClick={() => onPageChange('createComment', post._id)}
+				>
+					Add a comment
+				</button>
+
+				<hr />
+
+				<div className="post-comments">
+					{renderComments(post.commentIDs)}
+				</div>
+			</div>
+		);
+	};
+
+	if (loading) return <div className="post-page">Loading posts...</div>;
+	if (error) return <div className="post-page">Error: {error}</div>;
+	if (posts.length === 0) return <div className="post-page">No posts found</div>;
+
+	return (
+		<div className="post-page">
+			{selectedPostId && posts.length > 0 ? renderSinglePost(posts[0]) : renderPostList()}
+		</div>
+	);
+}
