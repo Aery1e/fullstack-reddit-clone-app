@@ -1,0 +1,150 @@
+import React, { useState, useEffect } from 'react';
+import modelService from './model-service';
+import validateLinks from '../links/validateLinks';
+import parseLinks from '../links/parseLinks';
+export default function CreateCommentPage({ onPageChange, selectedPostId, parentCommentId }) {
+    // State to track form data
+    const [content, setContent] = useState('');
+    const [commentedBy, setCommentedBy] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState('');
+
+    // Find post and parent comment for context
+    const post = selectedPostId
+        ? modelService.data.posts.find(p => p._id === selectedPostId)
+        : null;
+    const parentComment = parentCommentId
+        ? modelService.data.comments.find(c => c._id === parentCommentId)
+        : null;
+
+    // For debugging
+    useEffect(() => {
+        console.log("CreateCommentPage - postId:", selectedPostId, "parentCommentId:", parentCommentId);
+        if (parentComment) {
+            console.log("Parent comment:", parentComment.content);
+        }
+    }, [selectedPostId, parentCommentId, parentComment]);
+
+    // Handle form submission
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        // Validate required fields
+        if (!content || !commentedBy) {
+            setError("Please fill out all required fields.");
+            return;
+        }
+
+        if (!selectedPostId) {
+            setError("Error: No post selected for this comment.");
+            return;
+        }
+
+        const linkValidation = validateLinks(content);
+        if (!linkValidation.valid) {
+            setError(linkValidation.error);
+            return;
+        }
+        
+        try {
+            setIsSubmitting(true);
+            setError('');
+
+            // Create the new comment
+            const newCommentId = await modelService.createComment(
+                selectedPostId,
+                content,
+                commentedBy,
+                parentCommentId
+            );
+
+            console.log("Created new comment:", newCommentId);
+
+            // Show success message
+            alert("Comment added successfully!");
+
+            // Navigate back to the post page
+            onPageChange('postPage', selectedPostId);
+        } catch (error) {
+            console.error("Error creating comment:", error);
+            setError("An error occurred while creating the comment. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <div id="create-comment-page" className="create-comment-page">
+            <h2>{parentComment ? 'Reply to Comment' : 'Add a Comment'}</h2>
+
+            {error && <div className="error-message" style={{ color: 'red' }}>{error}</div>}
+
+            {parentComment && (
+                <div className="parent-comment">
+                    <h3>Replying to:</h3>
+                    <blockquote>
+                        <p dangerouslySetInnerHTML={{ __html: parseLinks(parentComment.content) }}></p>
+                        <footer>By {parentComment.commentedBy}</footer>
+                    </blockquote>
+                </div>
+            )}
+
+            {post && (
+                <div className="post-context">
+                    <p>
+                        <strong>Post:</strong> {post.title}
+                    </p>
+                </div>
+            )}
+
+            <div>
+                <label htmlFor="create-comment-content">Comment Content: (Required)</label>
+                <br />
+                <textarea
+                    id="create-comment-content"
+                    className="create-comment-content"
+                    placeholder="Enter Comment Content (Max 500 characters)"
+                    maxLength="500"
+                    rows="4"
+                    cols="50"
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                ></textarea>
+                <br />
+
+                <label htmlFor="create-comment-creator-name">Username: (Required)</label>
+                <br />
+                <input
+                    id="create-comment-creator-name"
+                    type="text"
+                    size="50"
+                    maxLength="100"
+                    placeholder="Enter Your Username"
+                    value={commentedBy}
+                    onChange={(e) => setCommentedBy(e.target.value)}
+                />
+                <br />
+
+                <button
+                    id="create-comment-submit"
+                    className="button"
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={isSubmitting}
+                >
+                    {isSubmitting ? "Submitting..." : `Submit ${parentComment ? 'Reply' : 'Comment'}`}
+                </button>
+
+                <button
+                    className="button"
+                    type="button"
+                    onClick={() => onPageChange('postPage', selectedPostId)}
+                    style={{ marginLeft: '10px' }}
+                    disabled={isSubmitting}
+                >
+                    Cancel
+                </button>
+            </div>
+        </div>
+    );
+}
