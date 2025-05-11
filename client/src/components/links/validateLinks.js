@@ -1,7 +1,7 @@
 export default function validateLinks(text) {
     if (!text) return { valid: true };
     
-    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+    const linkRegex = /\[(.*?)\]\((.*?)\)/g;
     let match;
     
     while ((match = linkRegex.exec(text)) !== null) {

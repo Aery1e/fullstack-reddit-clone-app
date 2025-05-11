@@ -6,7 +6,7 @@ export default function parseLinks(text) {
     tempDiv.textContent = text;
     
     // Find all markdown links in the format [text](url)
-    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+    const linkRegex = /\[(.*?)\]\((.*?)\)/g;
     let match;
     let result = text;
     
