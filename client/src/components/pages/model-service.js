@@ -297,21 +297,21 @@ class ModelService {
     }
 
     // Method to create a new registered user
-    // async createUser(email, displayName, firstName, lastName, password) {
-    //     try {
-    //         const response = await axios.post(`${API_URL}/users`, {
-    //            email, displayName, firstName, lastName, password
-    //         });
+    async createUser(email, displayName, firstName, lastName, password) {
+        try {
+            const response = await axios.post(`${API_URL}/users`, {
+               email, displayName, firstName, lastName, password
+            });
 
-    //          Add to local data cache
-    //          this.data.users.push(response.data);
+            //Add to local data cache
+            this.data.users.push(response.data);
 
-    //         return response.data._id;
-    //     } catch (error) {
-    //         console.error('Error creating flair:', error);
-    //         throw error;
-    //     }
-    // }
+            return response.data._id;
+        } catch (error) {
+            console.error('Error creating flair:', error);
+            throw error;
+        }
+    }
 
     // Method to search posts
     async searchPosts(query) {
