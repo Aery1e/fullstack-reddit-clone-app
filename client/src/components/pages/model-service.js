@@ -181,6 +181,23 @@ class ModelService {
         }
     }
 
+    // Method to create a new registered user
+    // async createUser(email, displayName, firstName, lastName, password) {
+    //     try {
+    //         const response = await axios.post(`${API_URL}/users`, {
+    //             content
+    //         });
+
+    //         // Add to local data cache
+    //         this.data.linkFlairs.push(response.data);
+
+    //         return response.data._id;
+    //     } catch (error) {
+    //         console.error('Error creating flair:', error);
+    //         throw error;
+    //     }
+    // }
+
     // Method to search posts
     async searchPosts(query) {
         try {
