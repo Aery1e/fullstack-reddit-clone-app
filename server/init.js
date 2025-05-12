@@ -10,7 +10,8 @@
 */
 
 const mongoose = require('mongoose');
-const UserModel = require('./models/users')
+const bcrypt = require('bcrypt');
+const UserModel = require('./models/users');
 const CommunityModel = require('./models/communities');
 const PostModel = require('./models/posts');
 const CommentModel = require('./models/comments');
@@ -18,12 +19,22 @@ const LinkFlairModel = require('./models/linkflairs');
 
 let userArgs = process.argv.slice(2);
 
+if (userArgs.length < 3) {
+    console.log('ERROR: You need to specify admin email, display name, and password');
+    console.log('Example: node init.js mongodb://127.0.0.1:27017/phreddit admin@example.com AdminUser password123');
+    return;
+}
+
 if (!userArgs[0].startsWith('mongodb')) {
     console.log('ERROR: You need to specify a valid mongodb URL as the first argument');
     return
 }
 
 let mongoDB = userArgs[0];
+const adminEmail = userArgs[1];
+const adminDisplayName = userArgs[2];
+const adminPassword = userArgs[3];
+
 mongoose.connect(mongoDB);
 let db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
@@ -69,20 +80,39 @@ function createCommunity(communityObj) {
     return newCommunityDoc.save();
 }
 
-function createUser(userObj){
-    let newUserDoc = new CommunityModel({
+async function createUser(userObj) {
+    let newUserDoc = new UserModel({
         email: userObj.email,
         displayName: userObj.displayName,
         firstName: userObj.firstName,
         lastName: userObj.lastName,
         passwordHash: userObj.passwordHash,
         reputation: userObj.reputation,
-        joinDate: new Date()
+        joinDate: userObj.joinDate,
+        isAdmin: userObj.isAdmin || false
     });
     return newUserDoc.save();
 }
 
 async function init() {
+    // First create admin user from command line arguments
+    const saltRounds = 10;
+    const adminPasswordHash = await bcrypt.hash(adminPassword, saltRounds);
+    
+    const adminUser = {
+        email: adminEmail,
+        displayName: adminDisplayName,
+        firstName: "Admin",
+        lastName: "User",
+        passwordHash: adminPasswordHash,
+        reputation: 1000,
+        joinDate: new Date(),
+        isAdmin: true
+    };
+    
+    let officialAdmin = await createUser(adminUser);
+    console.log(`Admin user created with email: ${adminEmail}`);
+    
     // link flair objects
     const linkFlair1 = { // link flair 1
         linkFlairID: 'lf1',
