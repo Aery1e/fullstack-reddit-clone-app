@@ -26,12 +26,12 @@ export default function CreateCommentPage({ onPageChange, selectedPostId, parent
         
         async function fetchData() {
             try {
-                if (selectedPostId) {
-                    // Fetch post directly from API
-                    const postResponse = await axios.get(`http://localhost:8000/api/posts/${selectedPostId}`);
-                    const post = postResponse.data;
-                    setPost(post);
-                }
+                // if (selectedPostId) {
+                //     // Fetch post directly from API
+                //     const postResponse = await axios.get(`http://localhost:8000/api/posts/${selectedPostId}`);
+                //     const post = postResponse.data;
+                //     setPost(post);
+                // }
                 
                 if (parentCommentId) {
                     // Fetch parent comment directly from API
