@@ -32,7 +32,7 @@ export default function CreateUserPage({ onPageChange }) {
                 joinDate: new Date()
             };
             
-            // Add the community to the communities array
+            // Add the user to the users array
             this.data.users.push(newUser);
             
             return newUserId;
