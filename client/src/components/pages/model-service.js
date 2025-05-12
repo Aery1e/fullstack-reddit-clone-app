@@ -209,11 +209,11 @@ class ModelService {
     // async createUser(email, displayName, firstName, lastName, password) {
     //     try {
     //         const response = await axios.post(`${API_URL}/users`, {
-    //             content
+    //            email, displayName, firstName, lastName, password
     //         });
 
-    //         // Add to local data cache
-    //         this.data.linkFlairs.push(response.data);
+    //          Add to local data cache
+    //          this.data.users.push(response.data);
 
     //         return response.data._id;
     //     } catch (error) {
