@@ -1,8 +1,8 @@
 export default function validateLinks(text) {
     if (!text) return { valid: true };
-    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+    const linkRegex = /\[(.*?)\]\((.*?)\)/g;
     let match;
-    if (linkRegex.exec(text) === null) return { valid: false, error: "Link text and Url text cannot be empty. Please fix the format: [link text](url)"};
+    // if (linkRegex.exec(text) === null) return { valid: false, error: "Link text and Url text cannot be empty. Please fix the format: [link text](url)"};
     while ((match = linkRegex.exec(text)) !== null) {
       const linkText = match[1];
       const url = match[2];
