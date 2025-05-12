@@ -189,8 +189,8 @@ async function init() {
     const guest = { // Guest
         email: "guest@gmail.com",
         displayName: "Guest",
-        firstName: "",
-        lastName: "",
+        firstName: "Guest",
+        lastName: "User",
         passwordHash: bcrypt.hashSync("", 10),
         reputation: 0,
         joinDate: new Date()
