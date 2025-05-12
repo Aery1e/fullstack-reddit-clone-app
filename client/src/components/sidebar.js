@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import modelService from "./pages/model-service";
 
-export default function Sidebar({ onPageChange,currentPage, selectedCommunityId }) {
+export default function Sidebar({ onPageChange,currentPage, selectedCommunityId, isLoggedIn }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -42,9 +42,9 @@ export default function Sidebar({ onPageChange,currentPage, selectedCommunityId 
             <div className="communities">
                 <h2>Communities</h2>
                 <button
-                    id="create-community-button"
-                    className={`button ${currentPage === 'createCommunity' ? 'create-community-button-active' : 'create-community-button button'}`}
-                    onClick={() => onPageChange("createCommunity")}
+                    id="create-community"
+                    className={`button ${currentPage === 'createCommunity' ? 'create-community-button-active' : isLoggedIn ? 'create-community-button' : 'create-community-button-Guest'}`}
+                    onClick={() => {if (isLoggedIn){onPageChange("createCommunity")} console.log(isLoggedIn)}}
                 >
                     Create Community
                 </button>
