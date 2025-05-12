@@ -63,11 +63,21 @@ code{
   border-color: lightgray;
   border-radius:15px;
   padding: 7px;
-
 }
 
 .newpost:hover{
   background-color: #FF5700;
+}
+
+.newpostGuest{
+  background-color: darkgrey;
+  border-color: lightgray;
+  border-radius:15px;
+  padding: 7px;
+}
+
+.newpostGuest:hover{
+  background-color: darkgrey;
 }
 
 .ftive{
@@ -388,6 +398,9 @@ code{
 }
 
 
+.logoutGuest{
+  display: none;
+}
 
 .home-page-top-bar, .community-top-bar{
   position: sticky;

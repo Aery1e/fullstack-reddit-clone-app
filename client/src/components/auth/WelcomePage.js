@@ -1,7 +1,11 @@
 import React from 'react';
 import './auth.css';
 
-function WelcomePage({ onPageChange }) {
+function WelcomePage({ onPageChange, setUserData }) {
+    if (localStorage.length === 0){
+        setUserData(null);
+        console.log("Logging out")
+    }
     return (
         <div className="welcome-container">
             <h1>Welcome to Phreddit</h1>

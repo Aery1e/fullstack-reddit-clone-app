@@ -51,10 +51,37 @@ export default function Header({onPageChange,currentPage, setSearchResults, isLo
             <form>
                 <input 
                     id="create-post" 
-                    className={`button ${currentPage === 'createPost' ? 'button-active' : 'newpost'}`}
+                    className={`${currentPage === 'createPost' ? 'button-active' : 'newpost'} ${isLoggedIn === true ? 'newpost' : 'newpostGuest'}`}
                     type="button" 
                     value="Create Post" 
-                    onClick={() => onPageChange('createPost')}
+                    onClick={() => {
+                        if (isLoggedIn){
+                            onPageChange('createPost');
+                        }
+                        }}
+                /> 
+                <input 
+                    id="profile" 
+                    className={`${currentPage === 'createPost' ? 'button-active' : 'newpost'} ${isLoggedIn === true ? 'newpost' : 'newpostGuest'}`}
+                    type="button" 
+                    value={`${isLoggedIn === true ? JSON.parse(localStorage.getItem("userData")).displayName : 'Guest'}`}
+                    onClick={() => {
+                        if (isLoggedIn){
+                            onPageChange('createPost');
+                        }
+                        }}
+                />
+                <input 
+                    id="profile" 
+                    className={`${currentPage === 'profile' ? 'button-active' : 'newpost'} ${isLoggedIn === true ? 'newpost' : 'logoutGuest'}`}
+                    type="button" 
+                    value="Logout"
+                    onClick={() => {
+                        if (isLoggedIn){
+                            onPageChange('welcome');
+                            localStorage.clear();
+                        }
+                        }}
                 /> 
             </form>
         </div>

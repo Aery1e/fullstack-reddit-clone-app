@@ -49,7 +49,7 @@ function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'welcome':
-        return <WelcomePage onPageChange={handlePageChange} />;
+        return <WelcomePage onPageChange={handlePageChange} setUserData={setUserData} />;
       case 'register':
         return <RegisterPage onPageChange={handlePageChange} />;
       case 'login':
