@@ -49,6 +49,7 @@ export default function Phreddit({ userData, isLoggedIn, onLogout, onPageChange 
         <div>
             <Header 
                 onPageChange={onPageChange}
+                handlePageChange={handlePageChange}
                 currentPage={currentPage}
                 setSearchResults={setSearchResults}
                 userData={userData} 

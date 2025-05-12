@@ -54,7 +54,6 @@ function App() {
         return <RegisterPage onPageChange={handlePageChange} />;
       case 'login':
         return <LoginPage onPageChange={handlePageChange} setUserData={setUserData} />;
-      case 'home':
       default:
         return (
           <Phreddit 
