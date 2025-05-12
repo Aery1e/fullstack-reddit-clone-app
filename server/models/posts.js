@@ -32,6 +32,10 @@ const postSchema = new Schema({
   views: {
     type: Number,
     default: 0
+  },
+  votes: {
+    type: Number,
+    default: 0
   }
 });
 
