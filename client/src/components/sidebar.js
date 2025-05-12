@@ -8,14 +8,8 @@ export default function Sidebar({ onPageChange,currentPage, selectedCommunityId 
     useEffect(() => {
         async function loadData() {
             try {
-                // If data is already loaded
-                if (modelService.data.communities.length > 0) {
-                    setLoading(false);
-                    return;
-                }
-
-                // Try to refresh data
-                await modelService.refreshData();
+                // Always fetch fresh community data from database
+                await modelService.fetchCommunities();
                 setLoading(false);
             } catch (err) {
                 console.error("Error loading data:", err);

@@ -14,10 +14,24 @@ export default function CreatePostPage({ onPageChange }) {
 
     // For debugging 
     useEffect(() => {
-        console.log("CreatePostPage render - model communities:", modelService.data.communities);
-        console.log("CreatePostPage render - model flairs:", modelService.data.linkFlairs);
+        async function fetchData() {
+            try {
+                // Fetch fresh community data for the selector
+                await modelService.fetchCommunities();
+                
+                // Fetch fresh link flair data for the selector
+                await modelService.fetchLinkFlairs();
+                
+                console.log("CreatePostPage render - model communities:", modelService.data.communities);
+                console.log("CreatePostPage render - model flairs:", modelService.data.linkFlairs);
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                setError("Failed to load data. Please try again later.");
+            }
+        }
+        
+        fetchData();
     }, []);
-
     // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();

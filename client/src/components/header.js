@@ -1,15 +1,23 @@
 import React, { useState } from 'react';
 import search from "./search/search";
+import modelService from './pages/model-service';
 
 export default function Header({onPageChange,currentPage, setSearchResults}) {
     const [input, setInput] = useState('');
     
-    const submit = (e) => {
+    const submit = async (e) => {
         e.preventDefault(); // prevent page refresh
-        const results = search(input);
-        setSearchResults(results);
-        // Navigate to search page
-        onPageChange('searchPage');
+        try {
+            // Use axios to query the server instead of local search
+            const results = await modelService.searchPosts(input);
+            setSearchResults(results);
+            // Navigate to search page
+            onPageChange('searchPage');
+        } catch (error) {
+            console.error("Search error:", error);
+            setSearchResults([]);
+            onPageChange('searchPage');
+        }
     };
     
     return (

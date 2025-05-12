@@ -57,6 +57,30 @@ class ModelService {
             };
         }
     }
+    
+    // Method to load community data from API
+    async fetchCommunities() {
+        try {
+            const response = await axios.get(`${API_URL}/communities`);
+            this.data.communities = response.data;
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching communities:', error);
+            throw error;
+        }
+    }
+
+    // Method to load link flairs from API
+    async fetchLinkFlairs() {
+        try {
+            const response = await axios.get(`${API_URL}/linkflairs`);
+            this.data.linkFlairs = response.data;
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching link flairs:', error);
+            throw error;
+        }
+    }
 
     // Method to reload data from API
     async refreshData() {
