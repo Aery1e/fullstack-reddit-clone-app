@@ -43,7 +43,7 @@ export default function Sidebar({ onPageChange,currentPage, selectedCommunityId,
                 <h2>Communities</h2>
                 <button
                     id="create-community"
-                    className={`button ${currentPage === 'createCommunity' ? 'create-community-button-active' : isLoggedIn ? 'create-community-button' : }`}
+                    className={`button ${currentPage === 'createCommunity' ? 'create-community-button-active' : isLoggedIn ? 'create-community-button' : 'create-community-button-Guest'}`}
                     onClick={() => {if (isLoggedIn){onPageChange("createCommunity")}}}
                 >
                     Create Community
