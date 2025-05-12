@@ -52,11 +52,19 @@ export default function CreateUserPage({ onPageChange }) {
         // Check if display name is taken
 
         // Check if email has already been used
-
-        // Check if password doesn't contain first,last or email id in name
-
+        
         // Check if email is right format
-
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(email)) {
+            alert("Email is not valid");
+            return;
+        } 
+        // Check if password doesn't contain first,last or email id in name
+        let match = email.substring(0, email.indexOf("@"))
+        if(match == null || password.indexOf(match[0]) !== -1 || password.indexOf(firstName) !== -1 || password.indexOf(lastName) !== -1){
+            alert("First name, Last name and/or email id is not allowed to be apart of password");
+            return;
+        }
         // Checks if passwords match
         if (password != confirmPassword) {
           alert("Password and confirm Password do not match");
