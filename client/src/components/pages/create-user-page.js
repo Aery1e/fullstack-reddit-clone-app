@@ -113,7 +113,7 @@ export default function CreateUserPage({ onPageChange }) {
                     size="50"  
                     placeholder="Enter your Email"
                     value={email}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => setEmail(e.target.value)}
                 />
                 <br/>
                 
@@ -127,7 +127,7 @@ export default function CreateUserPage({ onPageChange }) {
                     size="50" 
                     placeholder="First Name"
                     value={firstName}
-                    onChange={(e) => setDescription(e.target.value)}
+                    onChange={(e) => setFirstName(e.target.value)}
                 ></textarea>
                 <br/>
                 
@@ -141,7 +141,7 @@ export default function CreateUserPage({ onPageChange }) {
                     size="50" 
                     placeholder="Last Name"
                     value={lastName}
-                    onChange={(e) => setCreatorName(e.target.value)}
+                    onChange={(e) => setLastName(e.target.value)}
                 />
                 <br/>
 
@@ -155,7 +155,7 @@ export default function CreateUserPage({ onPageChange }) {
                     size="50" 
                     placeholder="Display Name"
                     value={displayName}
-                    onChange={(e) => setCreatorName(e.target.value)}
+                    onChange={(e) => setDisplayName(e.target.value)}
                 />
                 <br/>
                 
@@ -169,7 +169,7 @@ export default function CreateUserPage({ onPageChange }) {
                     size="50" 
                     placeholder="Password"
                     value={password}
-                    onChange={(e) => setCreatorName(e.target.value)}
+                    onChange={(e) => setPassword(e.target.value)}
                 />
                 <br/>
 
@@ -183,7 +183,7 @@ export default function CreateUserPage({ onPageChange }) {
                     size="50" 
                     placeholder="Confirm Password"
                     value={confirmPassword}
-                    onChange={(e) => setCreatorName(e.target.value)}
+                    onChange={(e) => setconfirmPassword(e.target.value)}
                 />
                 <br/>
 
