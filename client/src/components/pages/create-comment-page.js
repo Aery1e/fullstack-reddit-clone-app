@@ -2,28 +2,52 @@ import React, { useState, useEffect } from 'react';
 import modelService from './model-service';
 import validateLinks from '../links/validateLinks';
 import parseLinks from '../links/parseLinks';
+import axios from 'axios';
+
 export default function CreateCommentPage({ onPageChange, selectedPostId, parentCommentId }) {
     // State to track form data
     const [content, setContent] = useState('');
     const [commentedBy, setCommentedBy] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
-
+    const [post, setPost] = useState(null);
+    const [parentComment, setParentComment] = useState(null);
     // Find post and parent comment for context
-    const post = selectedPostId
-        ? modelService.data.posts.find(p => p._id === selectedPostId)
-        : null;
-    const parentComment = parentCommentId
-        ? modelService.data.comments.find(c => c._id === parentCommentId)
-        : null;
+    // const post = selectedPostId
+    //     ? modelService.data.posts.find(p => p._id === selectedPostId)
+    //     : null;
+    // const parentComment = parentCommentId
+    //     ? modelService.data.comments.find(c => c._id === parentCommentId)
+    //     : null;
 
     // For debugging
     useEffect(() => {
         console.log("CreateCommentPage - postId:", selectedPostId, "parentCommentId:", parentCommentId);
-        if (parentComment) {
-            console.log("Parent comment:", parentComment.content);
+        
+        async function fetchData() {
+            try {
+                if (selectedPostId) {
+                    // Fetch post directly from API
+                    const postResponse = await axios.get(`http://localhost:8000/api/posts/${selectedPostId}`);
+                    const post = postResponse.data;
+                    setPost(post);
+                }
+                
+                if (parentCommentId) {
+                    // Fetch parent comment directly from API
+                    const commentResponse = await axios.get(`http://localhost:8000/api/comments/${parentCommentId}`);
+                    const comment = commentResponse.data;
+                    setParentComment(comment);
+                    console.log("Parent comment:", comment.content);
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                setError("Failed to load necessary data. Please try again.");
+            }
         }
-    }, [selectedPostId, parentCommentId, parentComment]);
+        
+        fetchData();
+    }, [selectedPostId, parentCommentId]);
 
     // Handle form submission
     const handleSubmit = async (e) => {

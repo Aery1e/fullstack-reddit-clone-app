@@ -17,18 +17,85 @@ export default function PostPage({ onPageChange, selectedPostId, selectedCommuni
 			try {
 				setLoading(true);
 
-				// If modelService data is not loaded yet, wait for it
-				if (modelService.data.posts.length === 0) {
-					await modelService.refreshData();
+				// If a specific post ID is selected, fetch that post directly from API
+				if (selectedPostId) {
+					try {
+						// Fetch post directly from API
+						const response = await axios.get(`http://localhost:8000/api/posts/${selectedPostId}`);
+						setPosts([response.data]);
+						
+						// No need to separately fetch comments as they'll be loaded in refreshData
+						await modelService.refreshData();
+					} catch (err) {
+						console.error("Error fetching post:", err);
+						setError('Post not found');
+					}
 				}
+				// If a community is selected, fetch posts for that community
+				else if (selectedCommunityId) {
+					try {
+						// Fetch community directly from API
+						const communityResponse = await axios.get(`http://localhost:8000/api/communities/${selectedCommunityId}`);
+						const community = communityResponse.data;
+						
+						if (community && community.postIDs && community.postIDs.length > 0) {
+							// Fetch all posts and filter for those in this community
+							await modelService.refreshData();
+							const communityPosts = modelService.data.posts.filter(post =>
+								community.postIDs.includes(post._id)
+							);
+							setPosts(communityPosts);
+						} else {
+							setPosts([]);
+						}
+					} catch (err) {
+						console.error("Error fetching community:", err);
+						setError('Community not found');
+					}
+				}
+				// Otherwise, show all posts
+				else {
+					// Fetch all posts directly from API
+					const response = await axios.get('http://localhost:8000/api/posts');
+					setPosts(response.data);
+				}
+
+				setLoading(false);
+			} catch (err) {
+				console.error('Error fetching posts:', err);
+				setError('Failed to load posts. Please try again later.');
+				setLoading(false);
+			}
+		}
+
+		fetchPosts();
+	}, [selectedPostId, selectedCommunityId]);
+
+	// Fetch comments for a specific post
+	// const fetchCommentsForPost = async (post) => {
+	// 	try {
+	// 		// Since we've already loaded all comments, we can filter them
+	// 		// const postComments = modelService.data.comments.filter(comment =>
+	// 		// 	post.commentIDs && post.commentIDs.includes(comment._id)
+	// 		// );
+	// 		// setComments(postComments);
+	// 	} catch (err) {
+	// 		console.error('Error fetching comments:', err);
+	// 	}
+	// };
+
+	// Increment view count when viewing a specific post
+	useEffect(() => {
+		async function fetchPosts() {
+			try {
+				setLoading(true);
 
 				// If a specific post ID is selected, fetch that post
 				if (selectedPostId) {
-					const post = modelService.data.posts.find(p => p._id === selectedPostId);
+					// Only increment view count if we're viewing the post (not creating a comment)
+					const post = await modelService.fetchPostWithViewTracking(selectedPostId, true);
 					if (post) {
 						setPosts([post]);
-						// Fetch comments for this post
-						fetchCommentsForPost(post);
 					} else {
 						setError('Post not found');
 					}
@@ -60,44 +127,6 @@ export default function PostPage({ onPageChange, selectedPostId, selectedCommuni
 
 		fetchPosts();
 	}, [selectedPostId, selectedCommunityId]);
-
-	// Fetch comments for a specific post
-	const fetchCommentsForPost = async (post) => {
-		try {
-			// Since we've already loaded all comments, we can filter them
-			// const postComments = modelService.data.comments.filter(comment =>
-			// 	post.commentIDs && post.commentIDs.includes(comment._id)
-			// );
-			// setComments(postComments);
-		} catch (err) {
-			console.error('Error fetching comments:', err);
-		}
-	};
-
-	// Increment view count when viewing a specific post
-	useEffect(() => {
-		async function incrementViewCount() {
-			if (selectedPostId) {
-				try {
-					// We just need to fetch the post - the server will increment the view count
-					await axios.get(`http://localhost:8000/api/posts/${selectedPostId}`);
-
-					// Refresh the data to get updated view count
-					await modelService.refreshData();
-
-					// Update the post in our state
-					const updatedPost = modelService.data.posts.find(p => p._id === selectedPostId);
-					if (updatedPost) {
-						setPosts([updatedPost]);
-					}
-				} catch (err) {
-					console.error('Error incrementing view count:', err);
-				}
-			}
-		}
-
-		incrementViewCount();
-	}, [selectedPostId]);
 
 	// Handle sort method change
 	const handleSortChange = (method) => {

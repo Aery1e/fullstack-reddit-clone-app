@@ -25,25 +25,27 @@ class ModelService {
     // Method to load all data from API
     async loadInitialData() {
         try {
-            // Load communities
+            // Load link flairs FIRST 
+            const linkFlairsRes = await axios.get(`${API_URL}/linkflairs`);
+            this.data.linkFlairs = linkFlairsRes.data;
+            console.log('Link flairs loaded from API:', this.data.linkFlairs);
+            
+            // Finally load comments
+            const commentsRes = await axios.get(`${API_URL}/comments`);
+            this.data.comments = commentsRes.data;
+            console.log('Comments loaded from API:', this.data.comments);
+            
+            // Then load communities
             const communitiesRes = await axios.get(`${API_URL}/communities`);
             this.data.communities = communitiesRes.data;
             console.log('Communities loaded from API:', this.data.communities);
 
-            // Load posts
+            // Then load posts
             const postsRes = await axios.get(`${API_URL}/posts`);
             this.data.posts = postsRes.data;
             console.log('Posts loaded from API:', this.data.posts);
 
-            // Load comments
-            const commentsRes = await axios.get(`${API_URL}/comments`);
-            this.data.comments = commentsRes.data;
-            console.log('Comments loaded from API:', this.data.comments);
-
-            // Load link flairs
-            const linkFlairsRes = await axios.get(`${API_URL}/linkflairs`);
-            this.data.linkFlairs = linkFlairsRes.data;
-            console.log('Link flairs loaded from API:', this.data.linkFlairs);
+            
 
             console.log('All data successfully loaded from API');
         } catch (error) {
@@ -81,7 +83,96 @@ class ModelService {
             throw error;
         }
     }
+    // Method to get a post by ID
+    async fetchPost(postId) {
+        try {
+            const response = await axios.get(`${API_URL}/posts/${postId}`);
+            return response.data;
+        } catch (error) {
+            console.error(`Error fetching post ${postId}:`, error);
+            throw error;
+        }
+    }
 
+    // Method to get a comment by ID
+    async fetchComment(commentId) {
+        try {
+            const response = await axios.get(`${API_URL}/comments/${commentId}`);
+            return response.data;
+        } catch (error) {
+            console.error(`Error fetching comment ${commentId}:`, error);
+            throw error;
+        }
+    }
+
+    // Method to increment post view count
+    async incrementPostViews(postId) {
+        try {
+            // Just GET the post - server increments the view count
+            await axios.get(`${API_URL}/posts/${postId}`);
+        } catch (error) {
+            console.error(`Error incrementing views for post ${postId}:`, error);
+            throw error;
+        }
+    }
+
+    // Method to get posts for a community
+    async fetchPostsForCommunity(communityId) {
+        try {
+            const community = await this.fetchCommunity(communityId);
+            if (!community || !community.postIDs || community.postIDs.length === 0) {
+                return [];
+            }
+            
+            // Fetch all posts and filter for this community
+            const posts = await axios.get(`${API_URL}/posts`);
+            return posts.data.filter(post => community.postIDs.includes(post._id));
+        } catch (error) {
+            console.error(`Error fetching posts for community ${communityId}:`, error);
+            throw error;
+        }
+    }
+
+    // Method to get a community by ID
+    async fetchCommunity(communityId) {
+        try {
+            const response = await axios.get(`${API_URL}/communities/${communityId}`);
+            return response.data;
+        } catch (error) {
+            console.error(`Error fetching community ${communityId}:`, error);
+            throw error;
+        }
+    }
+
+    async fetchPostWithViewTracking(postId) {
+        try {
+            // Check if we've already viewed this post in this session
+            const viewedPosts = JSON.parse(localStorage.getItem('viewedPosts') || '[]');
+            const hasViewed = viewedPosts.includes(postId);
+            
+            // Fetch the post
+            const increment = hasViewed ? 'false' : 'true';
+            const response = await axios.get(`${API_URL}/posts/${postId}?increment=${increment}`);
+            const post = response.data;
+            
+            // If this is the first view in this session, track it
+            if (!hasViewed) {
+                viewedPosts.push(postId);
+                localStorage.setItem('viewedPosts', JSON.stringify(viewedPosts));
+                
+                // Update the local copy of the post with incremented view count
+                const postIndex = this.data.posts.findIndex(p => p._id === postId);
+                if (postIndex !== -1) {
+                    this.data.posts[postIndex] = post;
+                }
+            }
+            
+            return post;
+        } catch (error) {
+            console.error(`Error fetching post ${postId}:`, error);
+            throw error;
+        }
+    }
     // Method to reload data from API
     async refreshData() {
         return this.loadInitialData();

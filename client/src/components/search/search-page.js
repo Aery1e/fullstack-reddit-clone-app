@@ -1,9 +1,26 @@
 import { useState } from 'react';
 import modelService from '../pages/model-service';
 import Timestamp from "../timestamp";
-
+import { useEffect } from 'react';
 export default function SearchPage({ onPageChange, searchResults }) {
     const [sortMethod, setSortMethod] = useState('newest');
+    
+    useEffect(() => {
+        async function fetchSearchResults() {
+            if (!searchResults || searchResults.length === 0) {
+                return;
+            }
+            
+            try {
+                // Refresh data
+                await modelService.refreshData();
+            } catch (error) {
+                console.error("Error refreshing data:", error);
+            }
+        }
+        
+        fetchSearchResults();
+    }, [searchResults]);
 
     // Helper function to get community name
     const getCommunityName = (post) => {
@@ -118,12 +135,12 @@ export default function SearchPage({ onPageChange, searchResults }) {
         const sortedResults = getSortedResults();
         return sortedResults.map(post => {
 
-            const community = modelService.data.communities.find(
-                comm => comm.postIDs.includes(post.postID)
-            );
-            const linkFlair = modelService.data.linkFlairs.find(
-                flair => flair.linkFlairID === post.linkFlairID
-            );
+            // const community = modelService.data.communities.find(
+            //     comm => comm.postIDs.includes(post.postID)
+            // );
+            // const linkFlair = modelService.data.linkFlairs.find(
+            //     flair => flair.linkFlairID === post.linkFlairID
+            // );
             const allComments = (post) => {
                 if (!post) return 0;
 
