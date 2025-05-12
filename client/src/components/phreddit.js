@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './header.js';
 import Content from './content.js';
 import Sidebar from './sidebar.js';
 import SearchPage from './search/search-page.js';
 
-export default function Phreddit() {
+export default function Phreddit({ userData, isLoggedIn, onLogout, onPageChange }) {
     // State for the current page, selected post, and selected community
     const [currentPage, setCurrentPage] = useState('home');
     const [selectedPostId, setSelectedPostId] = useState(null);
@@ -38,19 +38,39 @@ export default function Phreddit() {
         }
     };
 
+    // Redirect to welcome page if user logs out
+    useEffect(() => {
+        if (!isLoggedIn && currentPage === 'createPost') {
+            setCurrentPage('home');
+        }
+    }, [isLoggedIn, currentPage]);
+
     return (
         <div>
             <Header 
                 onPageChange={handlePageChange}
                 currentPage={currentPage}
-                setSearchResults={setSearchResults} 
+                setSearchResults={setSearchResults}
+                userData={userData} 
+                isLoggedIn={isLoggedIn}
+                onLogout={onLogout}
+                onAuthPage={() => onPageChange('welcome')}
             />
             <div id="container" className="container">
-                <Sidebar onPageChange={handlePageChange} currentPage={currentPage} selectedCommunityId={selectedCommunityId} key={`sidebar-${refreshKey}`} />
+                <Sidebar 
+                    onPageChange={handlePageChange} 
+                    currentPage={currentPage} 
+                    selectedCommunityId={selectedCommunityId} 
+                    key={`sidebar-${refreshKey}`}
+                    isLoggedIn={isLoggedIn}
+                    userData={userData}
+                />
                 {currentPage === 'searchPage' ? (
                     <SearchPage 
                         onPageChange={handlePageChange} 
                         searchResults={searchResults}
+                        isLoggedIn={isLoggedIn}
+                        userData={userData}
                     />
                 ) : (
                     <Content 
@@ -60,6 +80,8 @@ export default function Phreddit() {
                         selectedCommunityId={selectedCommunityId}
                         parentCommentId={parentCommentId}
                         key={`content-${refreshKey}`}
+                        isLoggedIn={isLoggedIn}
+                        userData={userData}
                     />
                 )}
             </div>

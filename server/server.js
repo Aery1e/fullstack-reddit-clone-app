@@ -5,8 +5,11 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
+const bcrypt = require('bcrypt');
+
 
 // Import models
+const User = require('./models/users');
 const Community = require('./models/communities');
 const Post = require('./models/posts');
 const Comment = require('./models/comments');
@@ -31,6 +34,112 @@ const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 // API Routes
+// User Registration 
+app.post('/api/users/register', async (req, res) => {
+  try {
+    // Check if user already exists
+    const existingUserByEmail = await User.findOne({ email: req.body.email });
+    if (existingUserByEmail) {
+      return res.status(400).json({ message: 'Email already in use' });
+    }
+    
+    const existingUserByName = await User.findOne({ displayName: req.body.displayName });
+    if (existingUserByName) {
+      return res.status(400).json({ message: 'Display name already in use' });
+    }
+    
+    // Hash password
+    const saltRounds = 10;
+    const passwordHash = await bcrypt.hash(req.body.password, saltRounds);
+    
+    // Create new user
+    const user = new User({
+      email: req.body.email,
+      displayName: req.body.displayName,
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      passwordHash: passwordHash,
+      reputation: 100,
+      joinDate: new Date()
+    });
+    
+    const savedUser = await user.save();
+    
+    // Return success but don't include password hash
+    res.status(201).json({
+      message: 'User created successfully',
+      user: {
+        _id: savedUser._id,
+        email: savedUser.email,
+        displayName: savedUser.displayName,
+        firstName: savedUser.firstName,
+        lastName: savedUser.lastName,
+        reputation: savedUser.reputation,
+        joinDate: savedUser.joinDate,
+        isAdmin: savedUser.isAdmin
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+// User Login
+app.post('/api/users/login', async (req, res) => {
+  try {
+    // Find user by email
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+    
+    // Check password
+    const isPasswordValid = await bcrypt.compare(req.body.password, user.passwordHash);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+    
+    // Return user info 
+    res.json({
+      user: {
+        _id: user._id,
+        email: user.email,
+        displayName: user.displayName,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        reputation: user.reputation,
+        joinDate: user.joinDate,
+        isAdmin: user.isAdmin
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get user profile
+app.get('/api/users/:id', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    res.json({
+      user: {
+        _id: user._id,
+        email: user.email,
+        displayName: user.displayName,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        reputation: user.reputation,
+        joinDate: user.joinDate,
+        isAdmin: user.isAdmin
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 // Communities
 app.get('/api/communities', async (req, res) => {

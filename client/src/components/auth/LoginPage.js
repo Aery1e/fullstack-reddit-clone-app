@@ -30,8 +30,7 @@ function LoginPage({ onPageChange, setUserData }) {
                 }
             );
 
-            // Store user data and token in localStorage
-            localStorage.setItem("token", response.data.token);
+            // Store user data in localStorage
             localStorage.setItem("userData", JSON.stringify(response.data.user));
 
             // Update application state with user data
