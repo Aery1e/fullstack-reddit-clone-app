@@ -114,6 +114,7 @@ async function init() {
         postedDate: new Date('September 9, 2024 14:24:00'),
         commentIDs: [],
         views: 1023,
+        votes: 0
     };
     let postRef2 = await createPost(post2);
     
@@ -125,7 +126,7 @@ async function init() {
         postIDs: [postRef2],
         startDate: new Date('May 4, 2017 08:32:00'),
         members: ['MarcoArelius'],
-        memberCount: 4,
+        memberCount: 1,
         createdBy: "MarcoArelius"
     };
     let communityRef1 = await createCommunity(community1);
