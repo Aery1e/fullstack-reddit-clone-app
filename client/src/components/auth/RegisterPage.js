@@ -21,10 +21,10 @@ function RegisterPage({ onPageChange }) {
 
     // Password validation function
     const isValidPassword = (password) => {
-        if (password.includes(firstName) ||
-            password.includes(lastName) ||
-            password.includes(displayName) ||
-            password.includes(email.split('@')[0])) {
+        if (password.toLowerCase().includes(firstName.toLowerCase()) ||
+            password.toLowerCase().includes(lastName.toLowerCase()) ||
+            password.toLowerCase().includes(displayName.toLowerCase()) ||
+            password.toLowerCase().includes(email.split('@')[0].toLowerCase())) {
             return false;
         }
         return true;
