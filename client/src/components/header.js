@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 // import search from "./search/search";
 import modelService from './pages/model-service';
 
-export default function Header({onPageChange,currentPage, setSearchResults}) {
+export default function Header({onPageChange,currentPage, setSearchResults, isLoggedIn}) {
     const [input, setInput] = useState('');
     
     const submit = async (e) => {
@@ -25,7 +25,12 @@ export default function Header({onPageChange,currentPage, setSearchResults}) {
             <div className="title">
                 <a href='/' onClick={(e) => {
                     e.preventDefault();
-                    onPageChange('home');
+                    if (isLoggedIn){
+                        onPageChange('home');
+                    }
+                    else{
+                        onPageChange('welcome')
+                    }
                 }}>
                     phreddit
                 </a>
