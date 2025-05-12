@@ -25,6 +25,10 @@ const communitySchema = new Schema({
   members: [{
     type: String,
     required: true
+  }],
+  createdBy: [{
+    type: String,
+    required: true
   }]
 });
 
