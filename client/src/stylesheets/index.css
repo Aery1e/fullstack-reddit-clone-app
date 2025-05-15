@@ -648,3 +648,46 @@ code{
 .leave-button:hover {
   background-color: #cccccc;
 }
+
+.back-button {
+  background-color: #6c757d;
+  color: white;
+}
+
+.back-button:hover {
+  background-color: #5a6268;
+}
+
+.profile-user-name {
+  font-weight: bold;
+}
+
+.profile-user-email {
+  color: #555;
+}
+
+.profile-user-reputation {
+  margin-left: 10px;
+  font-weight: bold;
+  color: #FF5700;
+}
+
+.profile-view-button {
+  background-color: #28a745;
+  color: white;
+  margin-right: 10px;
+}
+
+.profile-view-button:hover {
+  background-color: #218838;
+}
+
+.profile-tab-content.no-padding {
+  padding: 0;
+  margin: 0;
+  min-height: auto;
+}
+
+.profile-users-list {
+  margin-top: 0;
+}

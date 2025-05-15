@@ -571,6 +571,85 @@ app.post('/api/communities/:id/leave', async (req, res) => {
   }
 });
 
+// Get all users (admin only)
+app.get('/api/users', async (req, res) => {
+  try {
+    const users = await User.find({}, {
+      _id: 1,
+      email: 1,
+      displayName: 1,
+      firstName: 1,
+      lastName: 1,
+      reputation: 1,
+      joinDate: 1,
+      isAdmin: 1
+    });
+    
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Delete a user and all their content (admin only)
+app.delete('/api/users/:id', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    
+    // Get the user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Delete all communities created by the user
+    const communities = await Community.find({ createdBy: user.displayName });
+    for (const community of communities) {
+      // Delete all posts in this community
+      for (const postId of community.postIDs) {
+        const post = await Post.findById(postId);
+        if (post) {
+          // Delete all comments for this post
+          for (const commentId of post.commentIDs) {
+            await deleteCommentAndReplies(commentId);
+          }
+          
+          // Delete the post
+          await Post.findByIdAndDelete(postId);
+        }
+      }
+      
+      // Delete the community
+      await Community.findByIdAndDelete(community._id);
+    }
+    
+    // Delete all posts created by the user
+    const posts = await Post.find({ postedBy: user.displayName });
+    for (const post of posts) {
+      // Delete all comments for this post
+      for (const commentId of post.commentIDs) {
+        await deleteCommentAndReplies(commentId);
+      }
+      
+      // Delete the post
+      await Post.findByIdAndDelete(post._id);
+    }
+    
+    // Delete all comments created by the user
+    const comments = await Comment.find({ commentedBy: user.displayName });
+    for (const comment of comments) {
+      await deleteCommentAndReplies(comment._id);
+    }
+    
+    // Finally, delete the user
+    await User.findByIdAndDelete(userId);
+    
+    res.json({ message: 'User and all their content deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Comments
 app.get('/api/comments', async (req, res) => {
   try {
