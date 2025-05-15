@@ -23,22 +23,46 @@ function UserProfilePage({ onPageChange }) {
             setError('User data not found. Please log in again.');
             return;
         }
-
-        setUserData(storedUserData);
-        setIsAdmin(storedUserData.isAdmin || false);
-
-        // If admin, default to users tab and load all users
-        if (storedUserData.isAdmin && !viewingUserId) {
-            setActiveTab('users');
-            loadAllUsers();
-        }
-
-        // Load specific user content if viewing a different user, otherwise load own content
-        if (viewingUserId && viewingUserId !== storedUserData._id) {
-            loadSpecificUserContent(viewingUserId);
-        } else {
-            loadUserContent(storedUserData.displayName);
-        }
+        
+        // Function to fetch fresh user data from server
+        const refreshUserData = async (userData) => {
+            try {
+                // Fetch the latest user data
+                const response = await axios.get(`http://localhost:8000/api/users/${userData._id}`);
+                const freshUserData = response.data.user;
+                
+                // Update localStorage
+                localStorage.setItem('userData', JSON.stringify(freshUserData));
+                
+                // Update state
+                setUserData(freshUserData);
+                setIsAdmin(freshUserData.isAdmin || false);
+                
+                return freshUserData;
+            } catch (err) {
+                console.error("Error refreshing user data:", err);
+                // Fall back to stored data if refresh fails
+                setUserData(storedUserData);
+                setIsAdmin(storedUserData.isAdmin || false);
+                return storedUserData;
+            }
+        };
+        
+        // Always refresh user data when profile page is visited
+        refreshUserData(storedUserData).then(freshData => {
+            // If admin, default to users tab and load all users
+            if (freshData.isAdmin && !viewingUserId) {
+                setActiveTab('users');
+                loadAllUsers();
+            }
+            
+            // Load specific user content if viewing a different user, otherwise load own content
+            if (viewingUserId && viewingUserId !== freshData._id) {
+                loadSpecificUserContent(viewingUserId);
+            } else {
+                loadUserContent(freshData.displayName);
+            }
+        });
     }, [viewingUserId]);
 
     const loadUserContent = async (displayName) => {
