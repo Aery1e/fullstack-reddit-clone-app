@@ -1,0 +1,10 @@
+{
+  "name": "project-s25-t-m",
+  "version": "1.0.0",
+  "description": "Phreddit - Reddit Clone",
+  "scripts": {
+    "test": "npm run test:server && npm run test:client",
+    "test:server": "cd server && npm test",
+    "test:client": "cd client && npm test -- --watchAll=false"
+  }
+}
