@@ -68,7 +68,7 @@ function RegisterPage({ onPageChange }) {
             setIsSubmitting(true);
 
             // Send registration request to server
-            const response = await axios.post('http://localhost:8000/api/users/register', {
+            await axios.post('http://localhost:8000/api/users/register', {
                 firstName,
                 lastName,
                 email,

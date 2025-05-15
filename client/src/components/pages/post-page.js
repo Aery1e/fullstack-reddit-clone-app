@@ -389,9 +389,7 @@ export default function PostPage({ onPageChange, selectedPostId, selectedCommuni
 			const userReputation = userData ? userData.reputation : 0;
 			const canVote = isLoggedIn && userReputation >= 50;
 
-			// Check if user has already voted on this comment
-			const hasVoted = isLoggedIn && comment.voters && comment.voters.some(v => v.userId === userData._id);
-
+			
 			// Handle vote action for comments
 			const handleCommentVote = async (voteType) => {
 				if (!isLoggedIn) {
@@ -523,9 +521,7 @@ export default function PostPage({ onPageChange, selectedPostId, selectedCommuni
 		const userReputation = userData ? userData.reputation : 0;
 		const canVote = isLoggedIn && userReputation >= 50;
 
-		// Check if user has already voted on this post
-		const hasVoted = isLoggedIn && post.voters && post.voters.some(v => v.userId === userData._id);
-
+		
 		// Handle vote action
 		const handleVote = async (voteType) => {
 			if (!isLoggedIn) {

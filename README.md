@@ -55,7 +55,20 @@ For server:
 In the sections below, list and describe each contribution briefly.
 
 ## Team Member 1 Contribution
-<Team Member 1 Name>
-
+Terry Lim
+- Voting System, reputation, admin functionality
+- Profile Shenanigans
+- dependencies management
+- A frustratingly atrocious amount of CSS
+- Community membership
+- Community un-membership
+- Login/Register/Welcome page frontend
 ## Team Member 2 Contribution
-<Team Member 2 Name>
+Michael Tso
+- Password hashing, design, jest testing, bug fixing
+- Models, schema, documents
+- react div structuring, properties
+- search
+- hyperlinks
+- Backend authentication, login, register, welcome page routing
+- UML diagrams
