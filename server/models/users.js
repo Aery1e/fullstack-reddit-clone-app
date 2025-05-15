@@ -1,48 +1,48 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const usersSchema = new Schema({
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
   displayName: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
   firstName: {
     type: String,
-    required: true
+    required: true,
   },
   lastName: {
     type: String,
-    required: true
+    required: true,
   },
   passwordHash: {
     type: String,
-    required: true
+    required: true,
   },
   reputation: {
     type: Number,
     default: 100,
-    required: true
+    required: true,
   },
   joinDate: {
     type: Date,
     default: Date.now,
-    required: true
+    required: true,
   },
   isAdmin: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 });
 
 // Virtual for url
-usersSchema.virtual('url').get(function() {
-  return 'users/' + this._id;
+usersSchema.virtual("url").get(function () {
+  return "users/" + this._id;
 });
 
-module.exports = mongoose.model('User', usersSchema);
+module.exports = mongoose.model("User", usersSchema);
