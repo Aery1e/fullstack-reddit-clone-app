@@ -110,7 +110,7 @@ export default function TopBar({ currentPage, selectedCommunityId, selectedPostI
                             <p dangerouslySetInnerHTML={{ __html: parseLinks(selectedCommunity.description) }}></p>
                         </p>
                         <div className="community-age">
-                            {formatCommunityAge(selectedCommunity.startDate)}
+                            {formatCommunityAge(selectedCommunity.startDate)} by: {selectedCommunity.createdBy[0]}
                         </div>
                         <div className="community-members">
                             {(selectedCommunity.memberCount ||
