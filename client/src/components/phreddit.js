@@ -45,12 +45,14 @@ export default function Phreddit({ userData, isLoggedIn, onLogout, onPageChange 
         }
         
         // If returning to home or community page, force a refresh to show updated content
-        if (pageName === 'home' || pageName === 'community' || pageName === 'postPage' || pageName === 'profile') {
+        if (pageName === 'home' || pageName === 'community' || pageName === 'postPage' || 
+            pageName === 'profile' || pageName === 'searchPage') {
             setRefreshKey(prevKey => prevKey + 1);
         }
         
         // Pass the additional data to App.js if needed
-        if (additionalData && (pageName === 'editCommunity' || pageName === 'editPost' || pageName === 'editComment' || pageName === 'postPage')) {
+        if (additionalData && (pageName === 'editCommunity' || pageName === 'editPost' || 
+            pageName === 'editComment' || pageName === 'postPage')) {
             onPageChange(pageName, additionalData);
         } else {
             onPageChange(pageName);
@@ -91,6 +93,7 @@ export default function Phreddit({ userData, isLoggedIn, onLogout, onPageChange 
                         searchResults={searchResults}
                         isLoggedIn={isLoggedIn}
                         userData={userData}
+                        key={`search-${searchResults.length}`}
                     />
                 ) : (
                     <Content 

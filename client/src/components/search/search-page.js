@@ -190,7 +190,7 @@ export default function SearchPage({ onPageChange, searchResults }) {
     };
 
     return (
-        <div id="search-page" className="post-page">
+        <div id="search-page" className="post-page" style={{ overflowY: 'auto', height: '100%' }} >
             <h2>Search Results:</h2>
             <hr />
             {searchResults.length === 0 ? (

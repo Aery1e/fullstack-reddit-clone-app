@@ -12,11 +12,19 @@ export default function Header({onPageChange, handlePageChange,currentPage, setS
             const results = await modelService.searchPosts(input);
             setSearchResults(results);
             // Navigate to search page
-            onPageChange('searchPage');
+            if (handlePageChange) {
+                handlePageChange('searchPage');
+            } else {
+                onPageChange('searchPage');
+            }
         } catch (error) {
             console.error("Search error:", error);
             setSearchResults([]);
-            onPageChange('searchPage');
+            if (handlePageChange) {
+                handlePageChange('searchPage');
+            } else {
+                onPageChange('searchPage');
+            }
         }
     };
     
