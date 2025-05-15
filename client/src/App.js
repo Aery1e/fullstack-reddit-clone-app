@@ -7,6 +7,9 @@ import WelcomePage from './components/auth/WelcomePage';
 import RegisterPage from './components/auth/RegisterPage';
 import LoginPage from './components/auth/LoginPage';
 import UserProfilePage from './components/pages/UserProfilePage.js';
+import EditCommunityPage from './components/pages/EditCommunityPage';
+import EditPostPage from './components/pages/EditPostPage';
+import EditCommentPage from './components/pages/EditCommentPage';
 function App() {
   // State to track the current page
   const [currentPage, setCurrentPage] = useState('welcome');
@@ -14,6 +17,8 @@ function App() {
   // State to track user data
   const [userData, setUserData] = useState(null);
   
+  const [additionalData, setAdditionalData] = useState(null);
+
   // Check if user is already logged in (from localStorage)
   useEffect(() => {
     const storedUserData = localStorage.getItem('userData');
@@ -32,8 +37,13 @@ function App() {
   }, []);
   
   // Function to handle page changes
-  const handlePageChange = (page) => {
+  const handlePageChange = (page, data = null) => {
     setCurrentPage(page);
+    if (data !== null) {
+      setAdditionalData(data);
+    } else {
+      setAdditionalData(null);
+    }
   };
   
   // Function to handle logout
@@ -56,6 +66,12 @@ function App() {
         return <LoginPage onPageChange={handlePageChange} setUserData={setUserData} />;
       case 'profile':
         return userData ? <UserProfilePage onPageChange={handlePageChange} /> : <WelcomePage onPageChange={handlePageChange} setUserData={setUserData} />;
+      case 'editCommunity':
+        return userData ? <EditCommunityPage onPageChange={handlePageChange} communityId={additionalData} /> : <WelcomePage onPageChange={handlePageChange} setUserData={setUserData} />;
+      case 'editPost':
+        return userData ? <EditPostPage onPageChange={handlePageChange} postId={additionalData} /> : <WelcomePage onPageChange={handlePageChange} setUserData={setUserData} />;
+      case 'editComment':
+        return userData ? <EditCommentPage onPageChange={handlePageChange} commentId={additionalData} /> : <WelcomePage onPageChange={handlePageChange} setUserData={setUserData} />;
       default:
         return (
           <Phreddit 

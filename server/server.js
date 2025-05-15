@@ -461,6 +461,57 @@ app.post('/api/comments/:id/vote', async (req, res) => {
   }
 });
 
+// Update a community
+app.put('/api/communities/:id', async (req, res) => {
+  try {
+    const community = await Community.findById(req.params.id);
+    if (!community) return res.status(404).json({ message: 'Community not found' });
+    
+    // Update fields
+    if (req.body.name) community.name = req.body.name;
+    if (req.body.description) community.description = req.body.description;
+    
+    const updatedCommunity = await community.save();
+    res.json(updatedCommunity);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Update a post
+app.put('/api/posts/:id', async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+    
+    // Update fields
+    if (req.body.title) post.title = req.body.title;
+    if (req.body.content) post.content = req.body.content;
+    if (req.body.linkFlairID) post.linkFlairID = req.body.linkFlairID;
+    
+    const updatedPost = await post.save();
+    res.json(updatedPost);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Update a comment
+app.put('/api/comments/:id', async (req, res) => {
+  try {
+    const comment = await Comment.findById(req.params.id);
+    if (!comment) return res.status(404).json({ message: 'Comment not found' });
+    
+    // Update fields
+    if (req.body.content) comment.content = req.body.content;
+    
+    const updatedComment = await comment.save();
+    res.json(updatedComment);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 // Comments
 app.get('/api/comments', async (req, res) => {
   try {

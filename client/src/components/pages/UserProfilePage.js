@@ -56,7 +56,7 @@ function UserProfilePage({ onPageChange }) {
     };
 
     const handleEditCommunity = (communityId) => {
-        onPageChange('editCommunity', null, communityId);
+        onPageChange('editCommunity', communityId);
     };
 
     const handleDeleteCommunity = async (communityId) => {
@@ -90,7 +90,7 @@ function UserProfilePage({ onPageChange }) {
     };
 
     const handleEditComment = (commentId) => {
-        onPageChange('editComment', null, null, commentId);
+        onPageChange('editComment', commentId);
     };
 
     const handleDeleteComment = async (commentId) => {

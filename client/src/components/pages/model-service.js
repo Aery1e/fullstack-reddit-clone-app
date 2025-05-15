@@ -459,6 +459,61 @@ class ModelService {
             throw error;
         }
     }
+
+    // Method to update a community
+    async updateCommunity(communityId, updatedData) {
+        try {
+            const response = await axios.put(`${API_URL}/communities/${communityId}`, updatedData);
+            
+            // Update local data
+            const index = this.data.communities.findIndex(c => c._id === communityId);
+            if (index !== -1) {
+                this.data.communities[index] = response.data;
+            }
+            
+            return response.data;
+        } catch (error) {
+            console.error('Error updating community:', error);
+            throw error;
+        }
+    }
+
+    // Method to update a post
+    async updatePost(postId, updatedData) {
+        try {
+            const response = await axios.put(`${API_URL}/posts/${postId}`, updatedData);
+            
+            // Update local data
+            const index = this.data.posts.findIndex(p => p._id === postId);
+            if (index !== -1) {
+                this.data.posts[index] = response.data;
+            }
+            
+            return response.data;
+        } catch (error) {
+            console.error('Error updating post:', error);
+            throw error;
+        }
+    }
+
+    // Method to update a comment
+    async updateComment(commentId, updatedData) {
+        try {
+            const response = await axios.put(`${API_URL}/comments/${commentId}`, updatedData);
+            
+            // Update local data
+            const index = this.data.comments.findIndex(c => c._id === commentId);
+            if (index !== -1) {
+                this.data.comments[index] = response.data;
+            }
+            
+            return response.data;
+        } catch (error) {
+            console.error('Error updating comment:', error);
+            throw error;
+        }
+    }
+
 }
 
 const modelService = new ModelService();
