@@ -180,7 +180,7 @@ export default function SearchPage({ onPageChange, searchResults, additionalData
                     <h4 className="flair-name">{getFlairContent(post.linkFlairID)}</h4>
                     <p className="post-content">{truncateContent(post.content)}</p>
                     <p className="post-subheading">
-                        Views: {post.views || 0} | Comments: {allComments(post)}
+                        Views: {post.views || 0} | Comments: {allComments(post)} | Votes: {post.votes}
                     </p>
                     <hr />
                 </div>

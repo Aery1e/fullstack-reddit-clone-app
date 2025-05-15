@@ -347,7 +347,7 @@ export default function PostPage({ onPageChange, selectedPostId, selectedCommuni
 					<p className="post-content" dangerouslySetInnerHTML={{ __html: parseLinks(truncateContent(post.content)) }}></p>
 
 					<p className="post-subheading">
-						Views: {post.views} | Comments: {countComments(post)}
+						Views: {post.views} | Comments: {countComments(post)} | Votes: {post.votes}
 					</p>
 					<hr />
 				</div>
@@ -604,7 +604,7 @@ export default function PostPage({ onPageChange, selectedPostId, selectedCommuni
 						</span>
 					)}
 					<span className="post-stats">
-						Views: {post.views} | Comments: {countComments(post)}
+						Views: {post.views} | Comments: {countComments(post)} | Votes: {post.votes}
 					</span>
 				</div>
 
