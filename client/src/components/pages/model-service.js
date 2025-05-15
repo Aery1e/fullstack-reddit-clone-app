@@ -464,13 +464,13 @@ class ModelService {
     async updateCommunity(communityId, updatedData) {
         try {
             const response = await axios.put(`${API_URL}/communities/${communityId}`, updatedData);
-            
+
             // Update local data
             const index = this.data.communities.findIndex(c => c._id === communityId);
             if (index !== -1) {
                 this.data.communities[index] = response.data;
             }
-            
+
             return response.data;
         } catch (error) {
             console.error('Error updating community:', error);
@@ -482,13 +482,13 @@ class ModelService {
     async updatePost(postId, updatedData) {
         try {
             const response = await axios.put(`${API_URL}/posts/${postId}`, updatedData);
-            
+
             // Update local data
             const index = this.data.posts.findIndex(p => p._id === postId);
             if (index !== -1) {
                 this.data.posts[index] = response.data;
             }
-            
+
             return response.data;
         } catch (error) {
             console.error('Error updating post:', error);
@@ -500,16 +500,61 @@ class ModelService {
     async updateComment(commentId, updatedData) {
         try {
             const response = await axios.put(`${API_URL}/comments/${commentId}`, updatedData);
-            
+
             // Update local data
             const index = this.data.comments.findIndex(c => c._id === commentId);
             if (index !== -1) {
                 this.data.comments[index] = response.data;
             }
-            
+
             return response.data;
         } catch (error) {
             console.error('Error updating comment:', error);
+            throw error;
+        }
+    }
+
+    // Method to join a community
+    async joinCommunity(communityId, displayName) {
+        try {
+            const response = await axios.post(`${API_URL}/communities/${communityId}/join`, {
+                displayName
+            });
+
+            // Update local data
+            const communityIndex = this.data.communities.findIndex(c => c._id === communityId);
+            if (communityIndex !== -1) {
+                if (!this.data.communities[communityIndex].members.includes(displayName)) {
+                    this.data.communities[communityIndex].members.push(displayName);
+                }
+            }
+
+            return response.data;
+        } catch (error) {
+            console.error('Error joining community:', error);
+            throw error;
+        }
+    }
+
+    // Method to leave a community
+    async leaveCommunity(communityId, displayName) {
+        try {
+            const response = await axios.post(`${API_URL}/communities/${communityId}/leave`, {
+                displayName
+            });
+
+            // Update local data
+            const communityIndex = this.data.communities.findIndex(c => c._id === communityId);
+            if (communityIndex !== -1) {
+                this.data.communities[communityIndex].members =
+                    this.data.communities[communityIndex].members.filter(
+                        member => member !== displayName
+                    );
+            }
+
+            return response.data;
+        } catch (error) {
+            console.error('Error leaving community:', error);
             throw error;
         }
     }

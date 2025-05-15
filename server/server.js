@@ -512,6 +512,65 @@ app.put('/api/comments/:id', async (req, res) => {
   }
 });
 
+// Join a community
+app.post('/api/communities/:id/join', async (req, res) => {
+  try {
+    const userId = req.body.userId;
+    const displayName = req.body.displayName;
+    
+    if (!displayName) {
+      return res.status(400).json({ message: 'Display name is required' });
+    }
+    
+    const community = await Community.findById(req.params.id);
+    if (!community) {
+      return res.status(404).json({ message: 'Community not found' });
+    }
+    
+    // Check if user is already a member
+    if (community.members.includes(displayName)) {
+      return res.status(400).json({ message: 'Already a member of this community' });
+    }
+    
+    // Add user to members list
+    community.members.push(displayName);
+    await community.save();
+    
+    res.json({ message: 'Successfully joined community', community });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Leave a community
+app.post('/api/communities/:id/leave', async (req, res) => {
+  try {
+    const displayName = req.body.displayName;
+    
+    if (!displayName) {
+      return res.status(400).json({ message: 'Display name is required' });
+    }
+    
+    const community = await Community.findById(req.params.id);
+    if (!community) {
+      return res.status(404).json({ message: 'Community not found' });
+    }
+    
+    // Check if user is a member
+    if (!community.members.includes(displayName)) {
+      return res.status(400).json({ message: 'Not a member of this community' });
+    }
+    
+    // Remove user from members list
+    community.members = community.members.filter(member => member !== displayName);
+    await community.save();
+    
+    res.json({ message: 'Successfully left community', community });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Comments
 app.get('/api/comments', async (req, res) => {
   try {
