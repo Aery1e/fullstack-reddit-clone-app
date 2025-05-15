@@ -347,11 +347,7 @@ export default function PostPage({ onPageChange, selectedPostId, selectedCommuni
 					<p className="post-content" dangerouslySetInnerHTML={{ __html: parseLinks(truncateContent(post.content)) }}></p>
 
 					<p className="post-subheading">
-<<<<<<< Updated upstream
-						Views: {post.views} | Comments: {countComments(post)} | Votes: {post.votes}
-=======
 						Views: {post.views} | Comments: {countComments(post)} | Votes: {post.votes || 0}
->>>>>>> Stashed changes
 					</p>
 					<hr />
 				</div>
