@@ -163,55 +163,81 @@ export default function PostPage({
   const getSortedPosts = () => {
     if (!posts || posts.length === 0) return [];
 
+    // Get user data to check joined communities
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    const isLoggedIn = !!userData;
+
+    // If not logged in, simply sort all posts
+    if (!isLoggedIn) {
+      return sortPosts(posts);
+    }
+
+    // Split posts into user's communities and other communities
+    const userCommunities = [];
+    modelService.data.communities.forEach((community) => {
+      if (
+        community.members &&
+        community.members.includes(userData.displayName)
+      ) {
+        userCommunities.push(community._id);
+      }
+    });
+
+    const userCommunityPosts = [];
+    const otherCommunityPosts = [];
+
+    posts.forEach((post) => {
+      const community = modelService.data.communities.find(
+        (c) => c.postIDs && c.postIDs.includes(post._id)
+      );
+
+      if (community && userCommunities.includes(community._id)) {
+        userCommunityPosts.push(post);
+      } else {
+        otherCommunityPosts.push(post);
+      }
+    });
+
+    // Sort each group by the current sort method
+    const sortedUserPosts = sortPosts(userCommunityPosts);
+    const sortedOtherPosts = sortPosts(otherCommunityPosts);
+
+    // If both groups have posts, we'll add a separator
+    if (sortedUserPosts.length > 0 && sortedOtherPosts.length > 0) {
+      sortedUserPosts.push({ isSeparator: true });
+    }
+
+    return [...sortedUserPosts, ...sortedOtherPosts];
+  };
+
+  // Helper function to sort posts by the current method
+  const sortPosts = (postsToSort) => {
     switch (sortMethod) {
       case "newest":
-        return [...posts].sort(
+        return [...postsToSort].sort(
           (a, b) => new Date(b.postedDate) - new Date(a.postedDate)
         );
       case "oldest":
-        return [...posts].sort(
+        return [...postsToSort].sort(
           (a, b) => new Date(a.postedDate) - new Date(b.postedDate)
         );
       case "active":
         // Sort by most recent comment
-        // Create array with most recent comment for each post
-        let sorted_comments = [];
-        // Array of recent comments that don't get sorted
-        let raw_comments = [];
-        // Array of posts whose indexes matches the comments of temp
-        let raw_posts = [];
-        // Array of sorted posts
-        let sorted_posts = [];
+        return [...postsToSort].sort((a, b) => {
+          const aRecentComment = findMostRecentComment(a);
+          const bRecentComment = findMostRecentComment(b);
 
-        // Filling comment arrays and post arrays
-        for (let i = 0; i < posts.length; i++) {
-          const recentComment = findMostRecentComment(posts[i]);
-          sorted_comments.push(recentComment);
-          raw_comments.push(recentComment);
-          raw_posts.push(posts[i]);
-        }
+          if (!aRecentComment && !bRecentComment) return 0;
+          if (!aRecentComment) return 1;
+          if (!bRecentComment) return -1;
 
-        // Sort one comment array by date
-        sorted_comments.sort((a, b) => {
-          if (!a && !b) return 0;
-          if (!a) return 1;
-          if (!b) return -1;
-          return new Date(b.commentedDate) - new Date(a.commentedDate);
+          return (
+            new Date(bRecentComment.commentedDate) -
+            new Date(aRecentComment.commentedDate)
+          );
         });
-
-        // Match sorted comments with their posts
-        for (let i = 0; i < sorted_comments.length; i++) {
-          for (let j = 0; j < raw_comments.length; j++) {
-            if (sorted_comments[i] === raw_comments[j]) {
-              sorted_posts.push(raw_posts[j]);
-              break;
-            }
-          }
-        }
-
-        return sorted_posts;
       default:
-        return posts;
+        return postsToSort;
     }
   };
 
@@ -323,7 +349,16 @@ export default function PostPage({
   const renderPostList = () => {
     const sortedPosts = getSortedPosts();
 
-    return sortedPosts.map((post) => {
+    return sortedPosts.map((post, index) => {
+      // Render separator if this is a separator post
+      if (post.isSeparator) {
+        return (
+          <div key={`separator-${index}`} className="sublist-separator">
+            Other Communities
+          </div>
+        );
+      }
+
       // Find the community for this post
       const community = modelService.data.communities.find(
         (c) => c.postIDs && c.postIDs.includes(post._id)
