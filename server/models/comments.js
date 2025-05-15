@@ -20,7 +20,15 @@ const commentSchema = new Schema({
     type: Date,
     default: Date.now,
     required: true
-  }
+  },
+  votes: {
+    type: Number,
+    default: 0
+  },
+  voters: [{
+    userId: String,
+    vote: String
+  }]
 });
 
 // Virtual for url

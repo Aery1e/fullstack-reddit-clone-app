@@ -36,7 +36,11 @@ const postSchema = new Schema({
   votes: {
     type: Number,
     default: 0
-  }
+  },
+  voters: [{
+    userId: String,
+    vote: String
+  }]
 });
 
 // Virtual for url

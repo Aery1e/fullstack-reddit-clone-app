@@ -522,3 +522,40 @@ code{
   margin-left: 10px;
   color: #666;
 }
+
+.vote-controls {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.vote-button {
+  background: none;
+  border: none;
+  font-size: 1.2em;
+  cursor: pointer;
+}
+
+.vote-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.vote-count {
+  margin: 0 10px;
+  font-weight: bold;
+}
+
+.comment .vote-button {
+  font-size: 1em;
+}
+
+.comment .vote-count {
+  margin: 0 5px;
+  font-weight: bold;
+  font-size: 0.9em;
+}
+
+.post-stats {
+  margin-left: auto;
+}

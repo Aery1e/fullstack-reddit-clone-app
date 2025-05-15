@@ -29,12 +29,12 @@ class ModelService {
             const linkFlairsRes = await axios.get(`${API_URL}/linkflairs`);
             this.data.linkFlairs = linkFlairsRes.data;
             console.log('Link flairs loaded from API:', this.data.linkFlairs);
-            
+
             // Finally load comments
             const commentsRes = await axios.get(`${API_URL}/comments`);
             this.data.comments = commentsRes.data;
             console.log('Comments loaded from API:', this.data.comments);
-            
+
             // Then load communities
             const communitiesRes = await axios.get(`${API_URL}/communities`);
             this.data.communities = communitiesRes.data;
@@ -45,7 +45,7 @@ class ModelService {
             this.data.posts = postsRes.data;
             console.log('Posts loaded from API:', this.data.posts);
 
-            
+
 
             console.log('All data successfully loaded from API');
         } catch (error) {
@@ -59,7 +59,7 @@ class ModelService {
             };
         }
     }
-    
+
     // Method to load community data from API
     async fetchCommunities() {
         try {
@@ -123,7 +123,7 @@ class ModelService {
             if (!community || !community.postIDs || community.postIDs.length === 0) {
                 return [];
             }
-            
+
             // Fetch all posts and filter for this community
             const posts = await axios.get(`${API_URL}/posts`);
             return posts.data.filter(post => community.postIDs.includes(post._id));
@@ -149,24 +149,24 @@ class ModelService {
             // Check if we've already viewed this post in this session
             const viewedPosts = JSON.parse(localStorage.getItem('viewedPosts') || '[]');
             const hasViewed = viewedPosts.includes(postId);
-            
+
             // Fetch the post
             const increment = hasViewed ? 'false' : 'true';
             const response = await axios.get(`${API_URL}/posts/${postId}?increment=${increment}`);
             const post = response.data;
-            
+
             // If this is the first view in this session, track it
             if (!hasViewed) {
                 viewedPosts.push(postId);
                 localStorage.setItem('viewedPosts', JSON.stringify(viewedPosts));
-                
+
                 // Update the local copy of the post with incremented view count
                 const postIndex = this.data.posts.findIndex(p => p._id === postId);
                 if (postIndex !== -1) {
                     this.data.posts[postIndex] = post;
                 }
             }
-            
+
             return post;
         } catch (error) {
             console.error(`Error fetching post ${postId}:`, error);
@@ -301,7 +301,7 @@ class ModelService {
     async createUser(email, displayName, firstName, lastName, password) {
         try {
             const response = await axios.post(`${API_URL}/users`, {
-               email, displayName, firstName, lastName, password
+                email, displayName, firstName, lastName, password
             });
 
             //Add to local data cache
@@ -329,12 +329,12 @@ class ModelService {
     async deleteCommunity(communityId) {
         try {
             const response = await axios.delete(`${API_URL}/communities/${communityId}`);
-            
+
             // Remove from local data cache
             this.data.communities = this.data.communities.filter(c => c._id !== communityId);
 
             await this.refreshData();
-            
+
             return response.data;
         } catch (error) {
             console.error('Error deleting community:', error);
@@ -346,12 +346,12 @@ class ModelService {
     async deletePost(postId) {
         try {
             const response = await axios.delete(`${API_URL}/posts/${postId}`);
-            
+
             // Remove from local data cache
             this.data.posts = this.data.posts.filter(p => p._id !== postId);
 
             await this.refreshData();
-            
+
             return response.data;
         } catch (error) {
             console.error('Error deleting post:', error);
@@ -363,15 +363,99 @@ class ModelService {
     async deleteComment(commentId) {
         try {
             const response = await axios.delete(`${API_URL}/comments/${commentId}`);
-            
+
             // Remove from local data cache
             this.data.comments = this.data.comments.filter(c => c._id !== commentId);
 
             await this.refreshData();
-            
+
             return response.data;
         } catch (error) {
             console.error('Error deleting comment:', error);
+            throw error;
+        }
+    }
+
+    // Method to vote on a post
+    async voteOnPost(postId, vote) {
+        try {
+            const userData = JSON.parse(localStorage.getItem('userData'));
+            if (!userData) {
+                throw new Error('You must be logged in to vote');
+            }
+
+            const response = await axios.post(`${API_URL}/posts/${postId}/vote`, {
+                vote: vote, // 'up' or 'down'
+                userId: userData._id
+            });
+
+            // Update local post data with new vote count
+            const postIndex = this.data.posts.findIndex(p => p._id === postId);
+            if (postIndex !== -1) {
+                this.data.posts[postIndex].votes = response.data.votes;
+
+                // Add this user to the voters array
+                if (!this.data.posts[postIndex].voters) {
+                    this.data.posts[postIndex].voters = [];
+                }
+                this.data.posts[postIndex].voters.push({
+                    userId: userData._id,
+                    vote: vote
+                });
+            }
+
+            // Update local user data with new reputation
+            const userDataUpdated = JSON.parse(localStorage.getItem('userData'));
+            if (userDataUpdated) {
+                userDataUpdated.reputation = response.data.voterReputation;
+                localStorage.setItem('userData', JSON.stringify(userDataUpdated));
+            }
+
+            return response.data;
+        } catch (error) {
+            console.error('Error voting on post:', error);
+            throw error;
+        }
+    }
+
+    // Method to vote on a comment
+    async voteOnComment(commentId, vote) {
+        try {
+            const userData = JSON.parse(localStorage.getItem('userData'));
+            if (!userData) {
+                throw new Error('You must be logged in to vote');
+            }
+
+            const response = await axios.post(`${API_URL}/comments/${commentId}/vote`, {
+                vote: vote, // 'up' or 'down'
+                userId: userData._id
+            });
+
+            // Update local comment data with new vote count
+            const commentIndex = this.data.comments.findIndex(c => c._id === commentId);
+            if (commentIndex !== -1) {
+                this.data.comments[commentIndex].votes = response.data.votes;
+
+                // Add this user to the voters array
+                if (!this.data.comments[commentIndex].voters) {
+                    this.data.comments[commentIndex].voters = [];
+                }
+                this.data.comments[commentIndex].voters.push({
+                    userId: userData._id,
+                    vote: vote
+                });
+            }
+
+            // Update local user data with new reputation
+            const userDataUpdated = JSON.parse(localStorage.getItem('userData'));
+            if (userDataUpdated) {
+                userDataUpdated.reputation = response.data.voterReputation;
+                localStorage.setItem('userData', JSON.stringify(userDataUpdated));
+            }
+
+            return response.data;
+        } catch (error) {
+            console.error('Error voting on comment:', error);
             throw error;
         }
     }

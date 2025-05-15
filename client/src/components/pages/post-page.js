@@ -23,7 +23,7 @@ export default function PostPage({ onPageChange, selectedPostId, selectedCommuni
 						// Fetch post directly from API
 						const response = await axios.get(`http://localhost:8000/api/posts/${selectedPostId}`);
 						setPosts([response.data]);
-						
+
 						// No need to separately fetch comments as they'll be loaded in refreshData
 						await modelService.refreshData();
 					} catch (err) {
@@ -37,7 +37,7 @@ export default function PostPage({ onPageChange, selectedPostId, selectedCommuni
 						// Fetch community directly from API
 						const communityResponse = await axios.get(`http://localhost:8000/api/communities/${selectedCommunityId}`);
 						const community = communityResponse.data;
-						
+
 						if (community && community.postIDs && community.postIDs.length > 0) {
 							// Fetch all posts and filter for those in this community
 							await modelService.refreshData();
@@ -383,14 +383,78 @@ export default function PostPage({ onPageChange, selectedPostId, selectedCommuni
 				paddingLeft: indentLevel > 0 ? '10px' : '0'
 			};
 
+			// Check if user is logged in and has enough reputation
+			const userData = JSON.parse(localStorage.getItem('userData'));
+			const isLoggedIn = !!userData;
+			const userReputation = userData ? userData.reputation : 0;
+			const canVote = isLoggedIn && userReputation >= 50;
+
+			// Check if user has already voted on this comment
+			const hasVoted = isLoggedIn && comment.voters && comment.voters.some(v => v.userId === userData._id);
+
+			// Handle vote action for comments
+			const handleCommentVote = async (voteType) => {
+				if (!isLoggedIn) {
+					alert("You must be logged in to vote");
+					return;
+				}
+
+				if (userReputation < 50) {
+					alert("You need at least 50 reputation to vote");
+					return;
+				}
+
+				if (hasVoted) {
+					alert("You have already voted on this comment");
+					return;
+				}
+
+				try {
+					await modelService.voteOnComment(comment._id, voteType);
+					// Refresh the page to show updated vote count
+					onPageChange('postPage', selectedPostId);
+				} catch (error) {
+					alert(error.response?.data?.message || "Error voting on comment");
+				}
+			};
+
 			return (
 				<div key={commentId} className="comment" style={indentStyle}>
 					<p dangerouslySetInnerHTML={{ __html: parseLinks(comment.content) }}></p>
+
+					<div className="vote-controls">
+						{isLoggedIn ? (
+							<>
+								<button
+									onClick={() => handleCommentVote('up')}
+									disabled={!canVote || hasVoted}
+									className="vote-button"
+								>
+									▲
+								</button>
+								<span className="vote-count">
+									{comment.votes || 0}
+								</span>
+								<button
+									onClick={() => handleCommentVote('down')}
+									disabled={!canVote || hasVoted}
+									className="vote-button"
+								>
+									▼
+								</button>
+							</>
+						) : (
+							<span className="vote-count">
+								Votes: {comment.votes || 0}
+							</span>
+						)}
+					</div>
+
 					<div className="comment-footer">
 						<small>
 							By {comment.commentedBy} | {Timestamp(new Date(comment.commentedDate))}
 						</small>
-						{localStorage.getItem('userData') ? (
+						{isLoggedIn ? (
 							<button
 								className="reply-button"
 								onClick={(e) => {
@@ -431,6 +495,41 @@ export default function PostPage({ onPageChange, selectedPostId, selectedCommuni
 
 		// Find the flair for this post
 		const flairContent = post.linkFlairID ? modelService.getFlairContent(post.linkFlairID) : 'No Flair';
+
+		// Check if user is logged in and has enough reputation
+		const userData = JSON.parse(localStorage.getItem('userData'));
+		const isLoggedIn = !!userData;
+		const userReputation = userData ? userData.reputation : 0;
+		const canVote = isLoggedIn && userReputation >= 50;
+
+		// Check if user has already voted on this post
+		const hasVoted = isLoggedIn && post.voters && post.voters.some(v => v.userId === userData._id);
+
+		// Handle vote action
+		const handleVote = async (voteType) => {
+			if (!isLoggedIn) {
+				alert("You must be logged in to vote");
+				return;
+			}
+
+			if (userReputation < 50) {
+				alert("You need at least 50 reputation to vote");
+				return;
+			}
+
+			if (hasVoted) {
+				alert("You have already voted on this post");
+				return;
+			}
+
+			try {
+				await modelService.voteOnPost(post._id, voteType);
+				// Refresh the page to show updated vote count
+				onPageChange('postPage', post._id);
+			} catch (error) {
+				alert(error.response?.data?.message || "Error voting on post");
+			}
+		};
 
 		// Count total comments (including replies)
 		const countComments = (post) => {
@@ -477,11 +576,39 @@ export default function PostPage({ onPageChange, selectedPostId, selectedCommuni
 				</h4>
 
 				<p className="post-content" dangerouslySetInnerHTML={{ __html: parseLinks(post.content) }}></p>
-				<p className="post-subheading">
-					Views: {post.views} | Comments: {countComments(post)} | Votes: {post.votes}
-				</p>
 
-				{localStorage.getItem('userData') ? (
+				<div className="vote-controls">
+					{isLoggedIn ? (
+						<>
+							<button
+								onClick={() => handleVote('up')}
+								disabled={!canVote || hasVoted}
+								className="vote-button"
+							>
+								▲
+							</button>
+							<span className="vote-count">
+								{post.votes || 0}
+							</span>
+							<button
+								onClick={() => handleVote('down')}
+								disabled={!canVote || hasVoted}
+								className="vote-button"
+							>
+								▼
+							</button>
+						</>
+					) : (
+						<span className="vote-count">
+							Votes: {post.votes || 0}
+						</span>
+					)}
+					<span className="post-stats">
+						Views: {post.views} | Comments: {countComments(post)}
+					</span>
+				</div>
+
+				{isLoggedIn ? (
 					<button
 						className="comment-button button"
 						onClick={() => onPageChange('createComment', post._id)}

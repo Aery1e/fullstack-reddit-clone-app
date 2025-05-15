@@ -333,6 +333,134 @@ app.post('/api/posts', async (req, res) => {
   }
 });
 
+// Vote on a post
+app.post('/api/posts/:id/vote', async (req, res) => {
+  try {
+    const { vote, userId } = req.body;
+    
+    if (vote !== 'up' && vote !== 'down') {
+      return res.status(400).json({ message: 'Invalid vote type' });
+    }
+    
+    // Get the post
+    const post = await Post.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    
+    // Get the voter and post creator
+    const voter = await User.findById(userId);
+    const creator = await User.findOne({ displayName: post.postedBy });
+    
+    if (!voter || !creator) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Check if voter has enough reputation
+    if (voter.reputation < 50) {
+      return res.status(403).json({ message: 'You need at least 50 reputation to vote' });
+    }
+    
+    // Check if user has already voted on this post
+    const voterIndex = post.voters ? post.voters.findIndex(v => v.userId === userId) : -1;
+    if (voterIndex !== -1) {
+      return res.status(400).json({ message: 'You have already voted on this post' });
+    }
+    
+    // Update post vote count and add voter to list
+    if (vote === 'up') {
+      post.votes += 1;
+      // Increase poster reputation
+      creator.reputation += 5;
+    } else {
+      post.votes -= 1;
+      // Decrease poster reputation
+      creator.reputation -= 10;
+    }
+    
+    // Add voter to the list
+    if (!post.voters) post.voters = [];
+    post.voters.push({ userId, vote });
+    
+    // Save changes
+    await post.save();
+    await creator.save();
+    
+    res.json({
+      votes: post.votes,
+      posterReputation: creator.reputation,
+      voterReputation: voter.reputation
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Vote on a comment
+app.post('/api/comments/:id/vote', async (req, res) => {
+  try {
+    const { vote, userId } = req.body;
+    
+    if (vote !== 'up' && vote !== 'down') {
+      return res.status(400).json({ message: 'Invalid vote type' });
+    }
+    
+    // Get the comment
+    const comment = await Comment.findById(req.params.id);
+    if (!comment) {
+      return res.status(404).json({ message: 'Comment not found' });
+    }
+    
+    // Get the voter and comment creator
+    const voter = await User.findById(userId);
+    const creator = await User.findOne({ displayName: comment.commentedBy });
+    
+    if (!voter || !creator) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Check if voter has enough reputation
+    if (voter.reputation < 50) {
+      return res.status(403).json({ message: 'You need at least 50 reputation to vote' });
+    }
+    
+    // Check if user has already voted on this comment
+    const voterIndex = comment.voters ? comment.voters.findIndex(v => v.userId === userId) : -1;
+    if (voterIndex !== -1) {
+      return res.status(400).json({ message: 'You have already voted on this comment' });
+    }
+    
+    // Update comment vote count and add voter to list
+    if (!comment.votes) comment.votes = 0;
+    
+    if (vote === 'up') {
+      comment.votes += 1;
+      // Increase commenter reputation
+      creator.reputation += 5;
+    } else {
+      comment.votes -= 1;
+      // Decrease commenter reputation
+      creator.reputation -= 10;
+    }
+    
+    // Add voter to the list
+    if (!comment.voters) comment.voters = [];
+    comment.voters.push({ userId, vote });
+    
+    // Save changes
+    await comment.save();
+    await creator.save();
+    
+    res.json({
+      votes: comment.votes,
+      commenterReputation: creator.reputation,
+      voterReputation: voter.reputation
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Comments
 app.get('/api/comments', async (req, res) => {
   try {
