@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import modelService from './pages/model-service';
+import React, { useState, useEffect } from "react";
+import modelService from "./pages/model-service";
 
 function TestAPI() {
   const [communities, setCommunities] = useState([]);
@@ -10,7 +10,7 @@ function TestAPI() {
     async function fetchData() {
       try {
         // Wait for data to load
-        await new Promise(resolve => {
+        await new Promise((resolve) => {
           const checkData = () => {
             if (modelService.data.communities.length > 0) {
               resolve();
@@ -24,7 +24,7 @@ function TestAPI() {
         setCommunities(modelService.data.communities);
         setLoading(false);
       } catch (err) {
-        setError('Error loading data: ' + err.message);
+        setError("Error loading data: " + err.message);
         setLoading(false);
       }
     }
@@ -39,7 +39,7 @@ function TestAPI() {
     <div>
       <h2>Communities from API</h2>
       <ul>
-        {communities.map(community => (
+        {communities.map((community) => (
           <li key={community._id}>
             <h3>{community.name}</h3>
             <p>{community.description}</p>

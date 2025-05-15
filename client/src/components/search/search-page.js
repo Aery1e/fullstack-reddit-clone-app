@@ -1,9 +1,25 @@
 import { useState } from 'react';
 import modelService from '../pages/model-service';
 import Timestamp from "../timestamp";
-
-export default function SearchPage({ onPageChange, searchResults }) {
+import { useEffect } from 'react';
+export default function SearchPage({ onPageChange, searchResults, additionalData }) {
     const [sortMethod, setSortMethod] = useState('newest');
+    useEffect(() => {
+        async function fetchSearchResults() {
+            if (!searchResults || searchResults.length === 0) {
+                return;
+            }
+            
+            try {
+                // Refresh data
+                await modelService.refreshData();
+            } catch (error) {
+                console.error("Error refreshing data:", error);
+            }
+        }
+        
+        fetchSearchResults();
+    }, [searchResults]);
 
     // Helper function to get community name
     const getCommunityName = (post) => {
@@ -118,12 +134,12 @@ export default function SearchPage({ onPageChange, searchResults }) {
         const sortedResults = getSortedResults();
         return sortedResults.map(post => {
 
-            const community = modelService.data.communities.find(
-                comm => comm.postIDs.includes(post.postID)
-            );
-            const linkFlair = modelService.data.linkFlairs.find(
-                flair => flair.linkFlairID === post.linkFlairID
-            );
+            // const community = modelService.data.communities.find(
+            //     comm => comm.postIDs.includes(post.postID)
+            // );
+            // const linkFlair = modelService.data.linkFlairs.find(
+            //     flair => flair.linkFlairID === post.linkFlairID
+            // );
             const allComments = (post) => {
                 if (!post) return 0;
 
@@ -164,7 +180,7 @@ export default function SearchPage({ onPageChange, searchResults }) {
                     <h4 className="flair-name">{getFlairContent(post.linkFlairID)}</h4>
                     <p className="post-content">{truncateContent(post.content)}</p>
                     <p className="post-subheading">
-                        Views: {post.views || 0} | Comments: {allComments(post)}
+                        Views: {post.views || 0} | Comments: {allComments(post)} | Votes: {post.votes}
                     </p>
                     <hr />
                 </div>
@@ -173,11 +189,17 @@ export default function SearchPage({ onPageChange, searchResults }) {
     };
 
     return (
-        <div id="search-page" className="post-page">
+        <div id="search-page" className="post-page" style={{ overflowY: 'auto', height: '100%' }} >
             <h2>Search Results:</h2>
             <hr />
             {searchResults.length === 0 ? (
-                <p>No posts found matching your search criteria</p>
+                <div className="no-results">
+                    <h3>No results found for: "{additionalData}"</h3>
+                    <p id="post-count">0 posts</p>
+                    <div className="no-results-image">
+                        <p>We couldn't find anything matching your search criteria.</p>
+                    </div>
+                </div>
             ) : (
                 <div>
                     <p>Found {searchResults.length} post{searchResults.length !== 1 ? 's' : ''}</p>

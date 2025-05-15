@@ -63,11 +63,21 @@ code{
   border-color: lightgray;
   border-radius:15px;
   padding: 7px;
-
 }
 
 .newpost:hover{
   background-color: #FF5700;
+}
+
+.newpostGuest{
+  background-color: darkgrey;
+  border-color: lightgray;
+  border-radius:15px;
+  padding: 7px;
+}
+
+.newpostGuest:hover{
+  background-color: darkgrey;
 }
 
 .ftive{
@@ -137,6 +147,17 @@ code{
 
 .create-community-button:hover{
   background-color: #FF5700;
+}
+
+.create-community-button-Guest{
+  display:block;
+  width: 100%;
+  margin:auto;
+  background-color:darkgrey
+}
+
+.create-community-button-Guest:hover{
+  background-color:darkgrey
 }
 
 .top-bar{
@@ -388,6 +409,9 @@ code{
 }
 
 
+.logoutGuest{
+  display: none;
+}
 
 .home-page-top-bar, .community-top-bar{
   position: sticky;
@@ -427,5 +451,255 @@ code{
   margin-top: 0;
   margin-bottom: 10px;
   color: #555;
+  font-size: 0.9em;
+}
+
+/* User Profile Page Styles */
+.user-profile-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.profile-header {
+  margin-bottom: 20px;
+}
+
+.profile-details {
+  background-color: #f5f5f5;
+  padding: 15px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+.profile-tabs {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ddd;
+}
+
+.profile-tab-button {
+  padding: 10px 20px;
+  background-color: #f0f0f0;
+  border: none;
+  cursor: pointer;
+  margin-right: 5px;
+  border-radius: 5px 5px 0 0;
+}
+
+.profile-tab-button.active {
+  background-color: #FF5700;
+  color: white;
+}
+
+.profile-tab-content {
+  min-height: 200px;
+}
+
+.profile-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.profile-item-actions {
+  display: flex;
+}
+
+.profile-edit-button, .profile-delete-button {
+  margin-left: 10px;
+  padding: 5px 10px;
+}
+
+.profile-delete-button {
+  background-color: #ff6b6b;
+  color: white;
+}
+
+.profile-comment-preview {
+  margin-left: 10px;
+  color: #666;
+}
+
+.vote-controls {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.vote-button {
+  background: none;
+  border: none;
+  font-size: 1.2em;
+  cursor: pointer;
+}
+
+.vote-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.vote-count {
+  margin: 0 10px;
+  font-weight: bold;
+}
+
+.comment .vote-button {
+  font-size: 1em;
+}
+
+.comment .vote-count {
+  margin: 0 5px;
+  font-weight: bold;
+  font-size: 0.9em;
+}
+
+.post-stats {
+  margin-left: auto;
+}
+
+/* Edit Pages Shared Styles */
+.edit-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.edit-page h2 {
+  margin-bottom: 20px;
+  color: #333;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.edit-actions button {
+  padding: 8px 16px;
+}
+
+.delete-button {
+  background-color: #ff6b6b;
+  color: white;
+}
+
+.confirmation-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.dialog-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  width: 400px;
+  max-width: 90%;
+}
+
+.dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.community-join-leave {
+  margin-top: 10px;
+}
+
+.join-button {
+  background-color: #FF5700;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.join-button:hover {
+  background-color: #ff6a00;
+}
+
+.leave-button {
+  background-color: #e0e0e0;
+  color: #333;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.leave-button:hover {
+  background-color: #cccccc;
+}
+
+.back-button {
+  background-color: #6c757d;
+  color: white;
+}
+
+.back-button:hover {
+  background-color: #5a6268;
+}
+
+.profile-user-name {
+  font-weight: bold;
+}
+
+.profile-user-email {
+  color: #555;
+}
+
+.profile-user-reputation {
+  margin-left: 10px;
+  font-weight: bold;
+  color: #FF5700;
+}
+
+.profile-view-button {
+  background-color: #28a745;
+  color: white;
+  margin-right: 10px;
+}
+
+.profile-view-button:hover {
+  background-color: #218838;
+}
+
+.profile-tab-content.no-padding {
+  padding: 0;
+  margin: 0;
+  min-height: auto;
+}
+
+.profile-users-list {
+  margin-top: 0;
+}
+
+.vote-button.active-vote {
+  color: #FF5700;
+  font-weight: bold;
+}
+
+.post-subheading {
+  display: flex;
+  gap: 15px;
+  color: #666;
   font-size: 0.9em;
 }
