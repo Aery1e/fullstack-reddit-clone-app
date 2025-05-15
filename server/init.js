@@ -27,7 +27,7 @@ if (userArgs.length < 3) {
 
 if (!userArgs[0].startsWith('mongodb')) {
     console.log('ERROR: You need to specify a valid mongodb URL as the first argument');
-    return
+    return;
 }
 
 let mongoDB = userArgs[0];

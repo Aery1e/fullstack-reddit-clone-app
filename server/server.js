@@ -166,7 +166,8 @@ app.post('/api/communities', async (req, res) => {
     name: req.body.name,
     description: req.body.description,
     postIDs: req.body.postIDs || [],
-    members: req.body.members || []
+    members: req.body.members || [],
+    createdBy: req.body.createdBy || req.body.members || []
   });
 
   try {

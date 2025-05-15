@@ -56,7 +56,7 @@ export default function Header({onPageChange, handlePageChange,currentPage, setS
                     value="Create Post" 
                     onClick={() => {
                         if (isLoggedIn){
-                            onPageChange('createPost');
+                            handlePageChange('createPost');
                         }
                         }}
                 /> 
@@ -67,7 +67,7 @@ export default function Header({onPageChange, handlePageChange,currentPage, setS
                     value={`${isLoggedIn === true ? JSON.parse(localStorage.getItem("userData")).displayName : 'Guest'}`}
                     onClick={() => {
                         if (isLoggedIn){
-                            onPageChange('profile');
+                            onPageChange('profile'); //There's a specific case in App.js that allows us to do this
                         }
                         }}
                 />

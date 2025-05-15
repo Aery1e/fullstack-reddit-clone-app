@@ -5,7 +5,6 @@ export default function CreateCommunityPage({ onPageChange }) {
     // State to track form data
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
-    const [creatorName, setCreatorName] = useState('');
     
     // For debugging - log on initial render
     console.log("CreateCommunityPage render - communities:", modelService.data.communities);
@@ -38,32 +37,33 @@ export default function CreateCommunityPage({ onPageChange }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         
+        // Get user data from localStorage
+        const userData = JSON.parse(localStorage.getItem('userData'));
+        if (!userData) {
+            alert("You must be logged in to create a community.");
+            return;
+        }
+        
         // Validate required fields
-        if (!name || !description || !creatorName) {
+        if (!name || !description) {
             alert("Please fill out all required fields.");
             return;
         }
 
         const linkValidation = validateLinks(description);
         if (!linkValidation.valid) {
-          alert(linkValidation.error);
-          return;
+        alert(linkValidation.error);
+        return;
         }
 
         try {
             console.log("Before creating community - communities:", modelService.data.communities.length);
             
-            // Create the new community
-            const newCommunityId = modelService.createCommunity(name, description, creatorName);
+            // Create the new community with user's display name
+            const newCommunityId = modelService.createCommunity(name, description, userData.displayName);
             
             console.log("Created new community:", newCommunityId);
             console.log("After creating community - communities:", modelService.data.communities.length);
-            
-            // Show all communities for debugging
-            console.log("All communities after creation:");
-            modelService.data.communities.forEach(community => {
-                console.log(`- Community ${community.communityID}: ${community.name}`);
-            });
             
             // Show success message
             alert("Community created successfully!");
@@ -114,20 +114,7 @@ export default function CreateCommunityPage({ onPageChange }) {
                 ></textarea>
                 <br/>
                 
-                <label htmlFor="create-community-creator-name">
-                    Community Creator: (Required)
-                </label>
-                <br/>
-                <input 
-                    id="create-community-creator-name" 
-                    type="text" 
-                    size="50" 
-                    maxLength="100" 
-                    placeholder="Enter Creator Name"
-                    value={creatorName}
-                    onChange={(e) => setCreatorName(e.target.value)}
-                />
-                <br/>
+                {/* Username is automatically taken from logged in user */}
                 
                 <button 
                     id="create-community-submit" 

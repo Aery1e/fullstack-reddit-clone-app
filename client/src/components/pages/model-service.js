@@ -200,7 +200,8 @@ class ModelService {
             const response = await axios.post(`${API_URL}/communities`, {
                 name,
                 description,
-                members: [creatorName]
+                members: [creatorName],
+                createdBy: [creatorName]
             });
 
             // Add to local data cache
