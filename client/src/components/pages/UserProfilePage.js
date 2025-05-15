@@ -153,6 +153,16 @@ function UserProfilePage({ onPageChange }) {
         <div className="user-profile-page">
             <div className="profile-header">
                 <h2>User Profile</h2>
+                <button 
+                    className="button"
+                    onClick={() => onPageChange('home')}
+                    style={{ 
+                        padding: '5px 10px',
+                        width: 'auto'
+                    }}
+                >
+                    Return Home
+                </button>
                 <div className="profile-details">
                     <p><strong>Display Name:</strong> {userData.displayName}</p>
                     <p><strong>Email:</strong> {userData.email}</p>
