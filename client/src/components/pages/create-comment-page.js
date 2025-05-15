@@ -7,7 +7,6 @@ import axios from 'axios';
 export default function CreateCommentPage({ onPageChange, selectedPostId, parentCommentId }) {
     // State to track form data
     const [content, setContent] = useState('');
-    const [commentedBy, setCommentedBy] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [post, setPost] = useState(null);
@@ -54,8 +53,15 @@ export default function CreateCommentPage({ onPageChange, selectedPostId, parent
         e.preventDefault();
 
         // Validate required fields
-        if (!content || !commentedBy) {
-            setError("Please fill out all required fields.");
+        const userData = JSON.parse(localStorage.getItem('userData'));
+        if (!userData) {
+            setError("You must be logged in to add a comment.");
+            return;
+        }
+
+        // Validate required fields
+        if (!content) {
+            setError("Please enter comment content.");
             return;
         }
 
@@ -78,7 +84,7 @@ export default function CreateCommentPage({ onPageChange, selectedPostId, parent
             const newCommentId = await modelService.createComment(
                 selectedPostId,
                 content,
-                commentedBy,
+                userData.displayName,
                 parentCommentId
             );
 
@@ -136,18 +142,7 @@ export default function CreateCommentPage({ onPageChange, selectedPostId, parent
                 ></textarea>
                 <br />
 
-                <label htmlFor="create-comment-creator-name">Username: (Required)</label>
-                <br />
-                <input
-                    id="create-comment-creator-name"
-                    type="text"
-                    size="50"
-                    maxLength="100"
-                    placeholder="Enter Your Username"
-                    value={commentedBy}
-                    onChange={(e) => setCommentedBy(e.target.value)}
-                />
-                <br />
+                {/* Username is automatically taken from logged in user */}
 
                 <button
                     id="create-comment-submit"

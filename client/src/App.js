@@ -6,7 +6,7 @@ import Phreddit from './components/phreddit.js';
 import WelcomePage from './components/auth/WelcomePage';
 import RegisterPage from './components/auth/RegisterPage';
 import LoginPage from './components/auth/LoginPage';
-
+import UserProfilePage from './components/pages/UserProfilePage.js';
 function App() {
   // State to track the current page
   const [currentPage, setCurrentPage] = useState('welcome');
@@ -54,6 +54,8 @@ function App() {
         return <RegisterPage onPageChange={handlePageChange} />;
       case 'login':
         return <LoginPage onPageChange={handlePageChange} setUserData={setUserData} />;
+      case 'profile':
+        return userData ? <UserProfilePage onPageChange={handlePageChange} /> : <WelcomePage onPageChange={handlePageChange} setUserData={setUserData} />;
       default:
         return (
           <Phreddit 

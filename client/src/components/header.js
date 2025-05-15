@@ -62,12 +62,12 @@ export default function Header({onPageChange, handlePageChange,currentPage, setS
                 /> 
                 <input 
                     id="profile" 
-                    className={`${currentPage === 'createPost' ? 'button-active' : 'newpost'} ${isLoggedIn === true ? 'newpost' : 'newpostGuest'}`}
+                    className={`${currentPage === 'profile' ? 'button-active' : 'newpost'} ${isLoggedIn === true ? 'newpost' : 'newpostGuest'}`}
                     type="button" 
                     value={`${isLoggedIn === true ? JSON.parse(localStorage.getItem("userData")).displayName : 'Guest'}`}
                     onClick={() => {
                         if (isLoggedIn){
-                            onPageChange('createPost');
+                            onPageChange('profile');
                         }
                         }}
                 />

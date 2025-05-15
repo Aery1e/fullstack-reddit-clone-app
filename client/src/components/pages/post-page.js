@@ -390,15 +390,25 @@ export default function PostPage({ onPageChange, selectedPostId, selectedCommuni
 						<small>
 							By {comment.commentedBy} | {Timestamp(new Date(comment.commentedDate))}
 						</small>
-						<button
-							className="reply-button"
-							onClick={(e) => {
-								e.stopPropagation(); // Prevent post click event
-								handleReplyClick(commentId);
-							}}
-						>
-							Reply
-						</button>
+						{localStorage.getItem('userData') ? (
+							<button
+								className="reply-button"
+								onClick={(e) => {
+									e.stopPropagation(); // Prevent post click event
+									handleReplyClick(commentId);
+								}}
+							>
+								Reply
+							</button>
+						) : (
+							<button
+								className="reply-button"
+								style={{ color: 'darkgrey', cursor: 'not-allowed' }}
+								disabled
+							>
+								Reply
+							</button>
+						)}
 					</div>
 
 					{/* Render nested comments with increased indent */}
@@ -471,12 +481,22 @@ export default function PostPage({ onPageChange, selectedPostId, selectedCommuni
 					Views: {post.views} | Comments: {countComments(post)} | Votes: {post.votes}
 				</p>
 
-				<button
-					className="comment-button button"
-					onClick={() => onPageChange('createComment', post._id)}
-				>
-					Add a comment
-				</button>
+				{localStorage.getItem('userData') ? (
+					<button
+						className="comment-button button"
+						onClick={() => onPageChange('createComment', post._id)}
+					>
+						Add a comment
+					</button>
+				) : (
+					<button
+						className="comment-button button"
+						style={{ backgroundColor: 'darkgrey', cursor: 'not-allowed' }}
+						disabled
+					>
+						Add a comment
+					</button>
+				)}
 
 				<hr />
 

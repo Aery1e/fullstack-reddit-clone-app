@@ -8,7 +8,6 @@ export default function CreatePostPage({ onPageChange }) {
     const [flairId, setFlairId] = useState('');
     const [newFlair, setNewFlair] = useState('');
     const [content, setContent] = useState('');
-    const [creatorName, setCreatorName] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
 
@@ -36,6 +35,13 @@ export default function CreatePostPage({ onPageChange }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // Get the logged in user data
+        const userData = JSON.parse(localStorage.getItem('userData'));
+        if (!userData) {
+            setError("You must be logged in to create a post.");
+            return;
+        }
+
         // Validate required fields
         if (!communityId) {
             setError("Please select a community.");
@@ -51,12 +57,6 @@ export default function CreatePostPage({ onPageChange }) {
             setError("Please enter post content.");
             return;
         }
-
-        if (!creatorName) {
-            setError("Please enter your username.");
-            return;
-        }
-
         const linkValidation = validateLinks(content);
         if (!linkValidation.valid) {
             setError(linkValidation.error);
@@ -89,7 +89,7 @@ export default function CreatePostPage({ onPageChange }) {
                 title,
                 content,
                 flairId: finalFlairId,
-                username: creatorName
+                username: userData.displayName
             });
 
             const newPostId = await modelService.createPost(
@@ -97,7 +97,7 @@ export default function CreatePostPage({ onPageChange }) {
                 title,
                 content,
                 finalFlairId,
-                creatorName
+                userData.displayName
             );
 
             console.log("Created new post:", newPostId);
@@ -223,20 +223,7 @@ export default function CreatePostPage({ onPageChange }) {
                 You can add links using this format: [link text](https://www.google.com/)
                 </small>
                 
-                <label htmlFor="create-post-creator-name">
-                    Username: (Required)
-                </label>
-                <br />
-                <input
-                    id="create-post-creator-name"
-                    type="text"
-                    size="50"
-                    maxLength="100"
-                    placeholder="Enter Creator Name"
-                    value={creatorName}
-                    onChange={(e) => setCreatorName(e.target.value)}
-                />
-                <br />
+                {/* Username is automatically taken from logged in user */}
 
                 <button
                     id="create-post-submit"

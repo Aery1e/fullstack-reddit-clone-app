@@ -177,6 +177,103 @@ app.post('/api/communities', async (req, res) => {
   }
 });
 
+// Delete a community and all its content
+app.delete('/api/communities/:id', async (req, res) => {
+  try {
+    const community = await Community.findById(req.params.id);
+    if (!community) {
+      return res.status(404).json({ message: 'Community not found' });
+    }
+    
+    // Delete all posts in this community
+    for (const postId of community.postIDs) {
+      const post = await Post.findById(postId);
+      if (post) {
+        // Delete all comments for this post
+        for (const commentId of post.commentIDs) {
+          await deleteCommentAndReplies(commentId);
+        }
+        
+        // Delete the post
+        await Post.findByIdAndDelete(postId);
+      }
+    }
+    
+    // Delete the community
+    await Community.findByIdAndDelete(req.params.id);
+    
+    res.json({ message: 'Community and all its content deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Helper function to recursively delete a comment and all its replies
+async function deleteCommentAndReplies(commentId) {
+  const comment = await Comment.findById(commentId);
+  if (!comment) return;
+  
+  // Recursively delete all replies
+  for (const replyId of comment.commentIDs) {
+    await deleteCommentAndReplies(replyId);
+  }
+  
+  // Delete the comment itself
+  await Comment.findByIdAndDelete(commentId);
+}
+
+// Delete a post and all its comments
+app.delete('/api/posts/:id', async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    
+    // Delete all comments for this post
+    for (const commentId of post.commentIDs) {
+      await deleteCommentAndReplies(commentId);
+    }
+    
+    // Delete the post
+    await Post.findByIdAndDelete(req.params.id);
+    
+    // Remove post reference from its community
+    const community = await Community.findOne({ postIDs: post._id });
+    if (community) {
+      community.postIDs = community.postIDs.filter(id => id.toString() !== post._id.toString());
+      await community.save();
+    }
+    
+    res.json({ message: 'Post and all its comments deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Delete a comment and all its replies
+app.delete('/api/comments/:id', async (req, res) => {
+  try {
+    await deleteCommentAndReplies(req.params.id);
+    
+    // Remove comment reference from its parent (post or comment)
+    const parentPost = await Post.findOne({ commentIDs: req.params.id });
+    if (parentPost) {
+      parentPost.commentIDs = parentPost.commentIDs.filter(id => id.toString() !== req.params.id.toString());
+      await parentPost.save();
+    } else {
+      const parentComment = await Comment.findOne({ commentIDs: req.params.id });
+      if (parentComment) {
+        parentComment.commentIDs = parentComment.commentIDs.filter(id => id.toString() !== req.params.id.toString());
+        await parentComment.save();
+      }
+    }
+    
+    res.json({ message: 'Comment and all its replies deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 // Posts
 app.get('/api/posts', async (req, res) => {
   try {

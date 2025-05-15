@@ -10,7 +10,7 @@ export default function Timestamp(post){
         return ""+Math.trunc((difference/1000)/60)+" minute(s) ago";
     }
     //Hours
-    else if(difference<2074000000){
+    else if(difference<86400000){ // Changed to 24 hours
         return ""+Math.trunc(((difference/1000)/60)/60)+" hour(s) ago";
     }
     //Days

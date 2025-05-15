@@ -323,6 +323,57 @@ class ModelService {
             return [];
         }
     }
+
+    // Method to delete a community
+    async deleteCommunity(communityId) {
+        try {
+            const response = await axios.delete(`${API_URL}/communities/${communityId}`);
+            
+            // Remove from local data cache
+            this.data.communities = this.data.communities.filter(c => c._id !== communityId);
+
+            await this.refreshData();
+            
+            return response.data;
+        } catch (error) {
+            console.error('Error deleting community:', error);
+            throw error;
+        }
+    }
+
+    // Method to delete a post
+    async deletePost(postId) {
+        try {
+            const response = await axios.delete(`${API_URL}/posts/${postId}`);
+            
+            // Remove from local data cache
+            this.data.posts = this.data.posts.filter(p => p._id !== postId);
+
+            await this.refreshData();
+            
+            return response.data;
+        } catch (error) {
+            console.error('Error deleting post:', error);
+            throw error;
+        }
+    }
+
+    // Method to delete a comment
+    async deleteComment(commentId) {
+        try {
+            const response = await axios.delete(`${API_URL}/comments/${commentId}`);
+            
+            // Remove from local data cache
+            this.data.comments = this.data.comments.filter(c => c._id !== commentId);
+
+            await this.refreshData();
+            
+            return response.data;
+        } catch (error) {
+            console.error('Error deleting comment:', error);
+            throw error;
+        }
+    }
 }
 
 const modelService = new ModelService();

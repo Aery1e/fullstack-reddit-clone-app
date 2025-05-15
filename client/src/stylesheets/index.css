@@ -453,3 +453,72 @@ code{
   color: #555;
   font-size: 0.9em;
 }
+
+/* User Profile Page Styles */
+.user-profile-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.profile-header {
+  margin-bottom: 20px;
+}
+
+.profile-details {
+  background-color: #f5f5f5;
+  padding: 15px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+.profile-tabs {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ddd;
+}
+
+.profile-tab-button {
+  padding: 10px 20px;
+  background-color: #f0f0f0;
+  border: none;
+  cursor: pointer;
+  margin-right: 5px;
+  border-radius: 5px 5px 0 0;
+}
+
+.profile-tab-button.active {
+  background-color: #FF5700;
+  color: white;
+}
+
+.profile-tab-content {
+  min-height: 200px;
+}
+
+.profile-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.profile-item-actions {
+  display: flex;
+}
+
+.profile-edit-button, .profile-delete-button {
+  margin-left: 10px;
+  padding: 5px 10px;
+}
+
+.profile-delete-button {
+  background-color: #ff6b6b;
+  color: white;
+}
+
+.profile-comment-preview {
+  margin-left: 10px;
+  color: #666;
+}
