@@ -347,7 +347,11 @@ export default function PostPage({ onPageChange, selectedPostId, selectedCommuni
 					<p className="post-content" dangerouslySetInnerHTML={{ __html: parseLinks(truncateContent(post.content)) }}></p>
 
 					<p className="post-subheading">
+<<<<<<< Updated upstream
 						Views: {post.views} | Comments: {countComments(post)} | Votes: {post.votes}
+=======
+						Views: {post.views} | Comments: {countComments(post)} | Votes: {post.votes || 0}
+>>>>>>> Stashed changes
 					</p>
 					<hr />
 				</div>
@@ -403,16 +407,37 @@ export default function PostPage({ onPageChange, selectedPostId, selectedCommuni
 					alert("You need at least 50 reputation to vote");
 					return;
 				}
-
-				if (hasVoted) {
-					alert("You have already voted on this comment");
+				
+				// Check if user has already voted in the same way
+				const currentVote = comment.voters?.find(v => v.userId === userData._id)?.vote || 'none';
+				
+				// If clicking the same vote button that's already active, remove the vote (transition to neutral)
+				if (currentVote === voteType) {
+					voteType = 'none';
+				} 
+				// If trying to switch directly between up/down votes, prevent it
+				else if (currentVote !== 'none' && voteType !== 'none') {
+					alert("You must remove your current vote before voting differently");
 					return;
 				}
 
 				try {
 					await modelService.voteOnComment(comment._id, voteType);
-					// Refresh the page to show updated vote count
-					onPageChange('postPage', selectedPostId);
+					
+					// Reload post data without incrementing view
+					const updatedPost = await axios.get(`http://localhost:8000/api/posts/${selectedPostId}?increment=false`);
+					
+					// Update the post in local data
+					const postIndex = modelService.data.posts.findIndex(p => p._id === selectedPostId);
+					if (postIndex !== -1) {
+						modelService.data.posts[postIndex] = updatedPost.data;
+					}
+					
+					// Also refresh comments data
+					await modelService.refreshData();
+					
+					// Force a re-render without changing page
+					setPosts([updatedPost.data]);
 				} catch (error) {
 					alert(error.response?.data?.message || "Error voting on comment");
 				}
@@ -427,8 +452,8 @@ export default function PostPage({ onPageChange, selectedPostId, selectedCommuni
 							<>
 								<button
 									onClick={() => handleCommentVote('up')}
-									disabled={!canVote || hasVoted}
-									className="vote-button"
+									disabled={!canVote}
+									className={`vote-button ${comment.voters?.find(v => v.userId === userData._id)?.vote === 'up' ? 'active-vote' : ''}`}
 								>
 									▲
 								</button>
@@ -437,8 +462,8 @@ export default function PostPage({ onPageChange, selectedPostId, selectedCommuni
 								</span>
 								<button
 									onClick={() => handleCommentVote('down')}
-									disabled={!canVote || hasVoted}
-									className="vote-button"
+									disabled={!canVote}
+									className={`vote-button ${comment.voters?.find(v => v.userId === userData._id)?.vote === 'down' ? 'active-vote' : ''}`}
 								>
 									▼
 								</button>
@@ -516,16 +541,33 @@ export default function PostPage({ onPageChange, selectedPostId, selectedCommuni
 				alert("You need at least 50 reputation to vote");
 				return;
 			}
-
-			if (hasVoted) {
-				alert("You have already voted on this post");
+			
+			// Check if user has already voted in the same way
+			const currentVote = post.voters?.find(v => v.userId === userData._id)?.vote || 'none';
+			
+			// If clicking the same vote button that's already active, remove the vote (transition to neutral)
+			if (currentVote === voteType) {
+				voteType = 'none';
+			} 
+			// If trying to switch directly between up/down votes, prevent it
+			else if (currentVote !== 'none' && voteType !== 'none') {
+				alert("You must remove your current vote before voting differently");
 				return;
 			}
 
 			try {
 				await modelService.voteOnPost(post._id, voteType);
-				// Refresh the page to show updated vote count
-				onPageChange('postPage', post._id);
+				// Reload post data without incrementing view
+				const updatedPost = await axios.get(`http://localhost:8000/api/posts/${post._id}?increment=false`);
+				
+				// Update the post in local data
+				const postIndex = modelService.data.posts.findIndex(p => p._id === post._id);
+				if (postIndex !== -1) {
+					modelService.data.posts[postIndex] = updatedPost.data;
+				}
+				
+				// Force a re-render
+				setPosts([updatedPost.data]);
 			} catch (error) {
 				alert(error.response?.data?.message || "Error voting on post");
 			}
@@ -582,8 +624,8 @@ export default function PostPage({ onPageChange, selectedPostId, selectedCommuni
 						<>
 							<button
 								onClick={() => handleVote('up')}
-								disabled={!canVote || hasVoted}
-								className="vote-button"
+								disabled={!canVote}
+								className={`vote-button ${post.voters?.find(v => v.userId === userData._id)?.vote === 'up' ? 'active-vote' : ''}`}
 							>
 								▲
 							</button>
@@ -592,8 +634,8 @@ export default function PostPage({ onPageChange, selectedPostId, selectedCommuni
 							</span>
 							<button
 								onClick={() => handleVote('down')}
-								disabled={!canVote || hasVoted}
-								className="vote-button"
+								disabled={!canVote}
+								className={`vote-button ${post.voters?.find(v => v.userId === userData._id)?.vote === 'down' ? 'active-vote' : ''}`}
 							>
 								▼
 							</button>

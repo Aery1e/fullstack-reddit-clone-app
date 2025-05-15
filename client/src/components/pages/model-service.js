@@ -144,19 +144,20 @@ class ModelService {
         }
     }
 
-    async fetchPostWithViewTracking(postId) {
+    async fetchPostWithViewTracking(postId, forceNoIncrement = false) {
         try {
             // Check if we've already viewed this post in this session
             const viewedPosts = JSON.parse(localStorage.getItem('viewedPosts') || '[]');
             const hasViewed = viewedPosts.includes(postId);
 
             // Fetch the post
-            const increment = hasViewed ? 'false' : 'true';
+            // Don't increment if we've already viewed or if forcibly prevented
+            const increment = (hasViewed || forceNoIncrement) ? 'false' : 'true';
             const response = await axios.get(`${API_URL}/posts/${postId}?increment=${increment}`);
             const post = response.data;
 
             // If this is the first view in this session, track it
-            if (!hasViewed) {
+            if (!hasViewed && !forceNoIncrement) {
                 viewedPosts.push(postId);
                 localStorage.setItem('viewedPosts', JSON.stringify(viewedPosts));
 
@@ -388,7 +389,7 @@ class ModelService {
             }
 
             const response = await axios.post(`${API_URL}/posts/${postId}/vote`, {
-                vote: vote, // 'up' or 'down'
+                vote: vote, // 'up', 'down', or 'none'
                 userId: userData._id
             });
 
@@ -396,15 +397,29 @@ class ModelService {
             const postIndex = this.data.posts.findIndex(p => p._id === postId);
             if (postIndex !== -1) {
                 this.data.posts[postIndex].votes = response.data.votes;
-
-                // Add this user to the voters array
+                
+                // Update voters array based on response
                 if (!this.data.posts[postIndex].voters) {
                     this.data.posts[postIndex].voters = [];
                 }
-                this.data.posts[postIndex].voters.push({
-                    userId: userData._id,
-                    vote: vote
-                });
+                
+                const voterIndex = this.data.posts[postIndex].voters.findIndex(
+                    v => v.userId === userData._id
+                );
+                
+                if (vote === 'none' && voterIndex !== -1) {
+                    // Remove vote if setting to neutral
+                    this.data.posts[postIndex].voters.splice(voterIndex, 1);
+                } else if (voterIndex !== -1) {
+                    // Update existing vote
+                    this.data.posts[postIndex].voters[voterIndex].vote = vote;
+                } else if (vote !== 'none') {
+                    // Add new vote
+                    this.data.posts[postIndex].voters.push({
+                        userId: userData._id,
+                        vote: vote
+                    });
+                }
             }
 
             // Update local user data with new reputation
@@ -430,7 +445,7 @@ class ModelService {
             }
 
             const response = await axios.post(`${API_URL}/comments/${commentId}/vote`, {
-                vote: vote, // 'up' or 'down'
+                vote: vote, // 'up', 'down', or 'none'
                 userId: userData._id
             });
 
@@ -438,15 +453,29 @@ class ModelService {
             const commentIndex = this.data.comments.findIndex(c => c._id === commentId);
             if (commentIndex !== -1) {
                 this.data.comments[commentIndex].votes = response.data.votes;
-
-                // Add this user to the voters array
+                
+                // Update voters array based on response
                 if (!this.data.comments[commentIndex].voters) {
                     this.data.comments[commentIndex].voters = [];
                 }
-                this.data.comments[commentIndex].voters.push({
-                    userId: userData._id,
-                    vote: vote
-                });
+                
+                const voterIndex = this.data.comments[commentIndex].voters.findIndex(
+                    v => v.userId === userData._id
+                );
+                
+                if (vote === 'none' && voterIndex !== -1) {
+                    // Remove vote if setting to neutral
+                    this.data.comments[commentIndex].voters.splice(voterIndex, 1);
+                } else if (voterIndex !== -1) {
+                    // Update existing vote
+                    this.data.comments[commentIndex].voters[voterIndex].vote = vote;
+                } else if (vote !== 'none') {
+                    // Add new vote
+                    this.data.comments[commentIndex].voters.push({
+                        userId: userData._id,
+                        vote: vote
+                    });
+                }
             }
 
             // Update local user data with new reputation

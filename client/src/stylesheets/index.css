@@ -691,3 +691,15 @@ code{
 .profile-users-list {
   margin-top: 0;
 }
+
+.vote-button.active-vote {
+  color: #FF5700;
+  font-weight: bold;
+}
+
+.post-subheading {
+  display: flex;
+  gap: 15px;
+  color: #666;
+  font-size: 0.9em;
+}

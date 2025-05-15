@@ -290,9 +290,13 @@ app.get('/api/posts/:id', async (req, res) => {
     const post = await Post.findById(req.params.id);
     if (!post) return res.status(404).json({ message: 'Post not found' });
     
-    // Increment view count
-    post.views += 1;
-    await post.save();
+    // Only increment view count if increment=true (default) in query params
+    const shouldIncrement = req.query.increment !== 'false';
+    
+    if (shouldIncrement) {
+      post.views += 1;
+      await post.save();
+    }
     
     res.json(post);
   } catch (err) {
@@ -338,7 +342,7 @@ app.post('/api/posts/:id/vote', async (req, res) => {
   try {
     const { vote, userId } = req.body;
     
-    if (vote !== 'up' && vote !== 'down') {
+    if (vote !== 'up' && vote !== 'down' && vote !== 'none') {
       return res.status(400).json({ message: 'Invalid vote type' });
     }
     
@@ -363,24 +367,44 @@ app.post('/api/posts/:id/vote', async (req, res) => {
     
     // Check if user has already voted on this post
     const voterIndex = post.voters ? post.voters.findIndex(v => v.userId === userId) : -1;
-    if (voterIndex !== -1) {
-      return res.status(400).json({ message: 'You have already voted on this post' });
+    const previousVote = voterIndex !== -1 ? post.voters[voterIndex].vote : 'none';
+    
+    // Handle vote state transitions
+    if (vote === previousVote) {
+      return res.status(400).json({ message: 'You have already voted this way' });
     }
     
-    // Update post vote count and add voter to list
+    // Update post vote count and adjust reputation
+    if (previousVote === 'up') {
+      post.votes -= 1;
+      creator.reputation -= 5; // Remove previous upvote reputation boost
+    } else if (previousVote === 'down') {
+      post.votes += 1;
+      creator.reputation += 10; // Remove previous downvote reputation penalty
+    }
+    
     if (vote === 'up') {
       post.votes += 1;
-      // Increase poster reputation
       creator.reputation += 5;
-    } else {
+    } else if (vote === 'down') {
       post.votes -= 1;
-      // Decrease poster reputation
       creator.reputation -= 10;
     }
     
-    // Add voter to the list
-    if (!post.voters) post.voters = [];
-    post.voters.push({ userId, vote });
+    // Update voter in the list
+    if (voterIndex !== -1) {
+      if (vote === 'none') {
+        // Remove vote if setting to neutral
+        post.voters.splice(voterIndex, 1);
+      } else {
+        // Update existing vote
+        post.voters[voterIndex].vote = vote;
+      }
+    } else if (vote !== 'none') {
+      // Add new vote
+      if (!post.voters) post.voters = [];
+      post.voters.push({ userId, vote });
+    }
     
     // Save changes
     await post.save();
@@ -389,7 +413,8 @@ app.post('/api/posts/:id/vote', async (req, res) => {
     res.json({
       votes: post.votes,
       posterReputation: creator.reputation,
-      voterReputation: voter.reputation
+      voterReputation: voter.reputation,
+      userVote: vote
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -401,7 +426,7 @@ app.post('/api/comments/:id/vote', async (req, res) => {
   try {
     const { vote, userId } = req.body;
     
-    if (vote !== 'up' && vote !== 'down') {
+    if (vote !== 'up' && vote !== 'down' && vote !== 'none') {
       return res.status(400).json({ message: 'Invalid vote type' });
     }
     
@@ -426,26 +451,48 @@ app.post('/api/comments/:id/vote', async (req, res) => {
     
     // Check if user has already voted on this comment
     const voterIndex = comment.voters ? comment.voters.findIndex(v => v.userId === userId) : -1;
-    if (voterIndex !== -1) {
-      return res.status(400).json({ message: 'You have already voted on this comment' });
+    const previousVote = voterIndex !== -1 ? comment.voters[voterIndex].vote : 'none';
+    
+    // Handle vote state transitions
+    if (vote === previousVote) {
+      return res.status(400).json({ message: 'You have already voted this way' });
     }
     
-    // Update comment vote count and add voter to list
+    // Update comment vote count and adjust reputation
     if (!comment.votes) comment.votes = 0;
     
+    // First handle previous vote (removing it)
+    if (previousVote === 'up') {
+      comment.votes -= 1;
+      creator.reputation -= 5; // Remove previous upvote reputation boost
+    } else if (previousVote === 'down') {
+      comment.votes += 1;
+      creator.reputation += 10; // Remove previous downvote reputation penalty
+    }
+    
+    // Then handle new vote (adding it)
     if (vote === 'up') {
       comment.votes += 1;
-      // Increase commenter reputation
       creator.reputation += 5;
-    } else {
+    } else if (vote === 'down') {
       comment.votes -= 1;
-      // Decrease commenter reputation
       creator.reputation -= 10;
     }
     
-    // Add voter to the list
-    if (!comment.voters) comment.voters = [];
-    comment.voters.push({ userId, vote });
+    // Update voter in the list
+    if (voterIndex !== -1) {
+      if (vote === 'none') {
+        // Remove vote if setting to neutral
+        comment.voters.splice(voterIndex, 1);
+      } else {
+        // Update existing vote
+        comment.voters[voterIndex].vote = vote;
+      }
+    } else if (vote !== 'none') {
+      // Add new vote
+      if (!comment.voters) comment.voters = [];
+      comment.voters.push({ userId, vote });
+    }
     
     // Save changes
     await comment.save();
@@ -454,7 +501,8 @@ app.post('/api/comments/:id/vote', async (req, res) => {
     res.json({
       votes: comment.votes,
       commenterReputation: creator.reputation,
-      voterReputation: voter.reputation
+      voterReputation: voter.reputation,
+      userVote: vote
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
