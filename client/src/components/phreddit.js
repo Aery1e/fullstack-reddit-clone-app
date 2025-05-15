@@ -18,10 +18,14 @@ export default function Phreddit({ userData, isLoggedIn, onLogout, onPageChange 
 
     // Function to handle page changes
     const handlePageChange = (pageName, additionalData = null, communityId = null, commentId = null) => {
+        console.log("handlePageChange called with page:", pageName, "additionalData:", additionalData);
         setCurrentPage(pageName);
         
         // Explicitly reset post ID when navigating to pages other than post view
-        if (pageName !== 'postPage' && pageName !== 'editPost' && pageName !== 'createComment') {
+        if (pageName === 'searchPage') {
+            // For search page, store the search query in selectedPostId
+            setSelectedPostId(additionalData);
+        } else if (pageName !== 'postPage' && pageName !== 'editPost' && pageName !== 'createComment') {
             setSelectedPostId(null);
         } else if (pageName === 'postPage' || pageName === 'editPost') {
             setSelectedPostId(additionalData);
@@ -94,6 +98,7 @@ export default function Phreddit({ userData, isLoggedIn, onLogout, onPageChange 
                         isLoggedIn={isLoggedIn}
                         userData={userData}
                         key={`search-${searchResults.length}`}
+                        additionalData={selectedPostId} // selectedPostId is being used to store the search query
                     />
                 ) : (
                     <Content 

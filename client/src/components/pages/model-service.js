@@ -317,6 +317,9 @@ class ModelService {
     // Method to search posts
     async searchPosts(query) {
         try {
+            if (!query || query.trim() === '') {
+                return [];
+            }
             const response = await axios.get(`${API_URL}/search?q=${encodeURIComponent(query)}`);
             return response.data;
         } catch (error) {

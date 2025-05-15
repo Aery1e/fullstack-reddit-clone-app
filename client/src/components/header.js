@@ -13,9 +13,9 @@ export default function Header({onPageChange, handlePageChange,currentPage, setS
             setSearchResults(results);
             // Navigate to search page
             if (handlePageChange) {
-                handlePageChange('searchPage');
+                handlePageChange('searchPage', input); 
             } else {
-                onPageChange('searchPage');
+                onPageChange('searchPage', input);
             }
         } catch (error) {
             console.error("Search error:", error);

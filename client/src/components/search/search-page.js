@@ -2,9 +2,8 @@ import { useState } from 'react';
 import modelService from '../pages/model-service';
 import Timestamp from "../timestamp";
 import { useEffect } from 'react';
-export default function SearchPage({ onPageChange, searchResults }) {
+export default function SearchPage({ onPageChange, searchResults, additionalData }) {
     const [sortMethod, setSortMethod] = useState('newest');
-    
     useEffect(() => {
         async function fetchSearchResults() {
             if (!searchResults || searchResults.length === 0) {
@@ -194,7 +193,13 @@ export default function SearchPage({ onPageChange, searchResults }) {
             <h2>Search Results:</h2>
             <hr />
             {searchResults.length === 0 ? (
-                <p>No posts found matching your search criteria</p>
+                <div className="no-results">
+                    <h3>No results found for: "{additionalData}"</h3>
+                    <p id="post-count">0 posts</p>
+                    <div className="no-results-image">
+                        <p>We couldn't find anything matching your search criteria.</p>
+                    </div>
+                </div>
             ) : (
                 <div>
                     <p>Found {searchResults.length} post{searchResults.length !== 1 ? 's' : ''}</p>
