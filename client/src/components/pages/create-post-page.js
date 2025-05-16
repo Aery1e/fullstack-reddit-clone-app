@@ -144,11 +144,59 @@ export default function CreatePostPage({ onPageChange }) {
           onChange={(e) => setCommunityId(e.target.value)}
         >
           <option value="">-- Select a Community --</option>
-          {modelService.data.communities.map((community) => (
-            <option key={community._id} value={community._id}>
-              {community.name}
-            </option>
-          ))}
+          {(() => {
+            // Get user data to check joined communities
+            const userData = JSON.parse(localStorage.getItem("userData"));
+
+            // Clone the communities array and organize into two groups
+            const joinedCommunities = [];
+            const otherCommunities = [];
+
+            modelService.data.communities.forEach((community) => {
+              if (
+                community.members &&
+                userData &&
+                community.members.includes(userData.displayName)
+              ) {
+                joinedCommunities.push(community);
+              } else {
+                otherCommunities.push(community);
+              }
+            });
+
+            // Sort each group alphabetically
+            joinedCommunities.sort((a, b) => a.name.localeCompare(b.name));
+            otherCommunities.sort((a, b) => a.name.localeCompare(b.name));
+
+            // If there are communities in both groups, we'll add a group label
+            const options = [];
+
+            if (joinedCommunities.length > 0) {
+              options.push(
+                <optgroup label="Your Communities" key="joined">
+                  {joinedCommunities.map((community) => (
+                    <option key={community._id} value={community._id}>
+                      {community.name}
+                    </option>
+                  ))}
+                </optgroup>
+              );
+            }
+
+            if (otherCommunities.length > 0) {
+              options.push(
+                <optgroup label="Other Communities" key="other">
+                  {otherCommunities.map((community) => (
+                    <option key={community._id} value={community._id}>
+                      {community.name}
+                    </option>
+                  ))}
+                </optgroup>
+              );
+            }
+
+            return options;
+          })()}
         </select>
         <br />
 

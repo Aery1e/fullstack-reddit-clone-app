@@ -9,12 +9,37 @@ export default function Sidebar({
 }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [communities, setCommunities] = useState([]);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Set up a global event listener for community membership changes
+  useEffect(() => {
+    // Create a custom event handler
+    const handleCommunityUpdate = () => {
+      setRefreshKey((prevKey) => prevKey + 1);
+    };
+
+    // Add the event listener
+    window.addEventListener(
+      "communityMembershipChanged",
+      handleCommunityUpdate
+    );
+
+    // Cleanup
+    return () => {
+      window.removeEventListener(
+        "communityMembershipChanged",
+        handleCommunityUpdate
+      );
+    };
+  }, []);
 
   useEffect(() => {
     async function loadData() {
       try {
         // Always fetch fresh community data from database
         await modelService.fetchCommunities();
+        setCommunities(modelService.data.communities);
         setLoading(false);
       } catch (err) {
         console.error("Error loading data:", err);
@@ -24,15 +49,85 @@ export default function Sidebar({
     }
 
     loadData();
-  }, []);
+  }, [refreshKey]);
 
   if (loading) return <div className="sidebar">Loading communities...</div>;
   if (error) return <div className="sidebar">Error: {error}</div>;
 
-  console.log(
-    "Sidebar render - model communities:",
-    modelService.data.communities
-  );
+  const renderCommunityList = () => {
+    // Get user data to check joined communities
+    const userData = JSON.parse(localStorage.getItem("userData"));
+
+    // Sort communities - joined communities first, then alphabetically within each group
+    const joinedCommunities = [];
+    const otherCommunities = [];
+
+    communities.forEach((community) => {
+      if (
+        isLoggedIn &&
+        userData &&
+        community.members &&
+        community.members.includes(userData.displayName)
+      ) {
+        joinedCommunities.push(community);
+      } else {
+        otherCommunities.push(community);
+      }
+    });
+
+    // Sort each group alphabetically
+    joinedCommunities.sort((a, b) => a.name.localeCompare(b.name));
+    otherCommunities.sort((a, b) => a.name.localeCompare(b.name));
+
+    // Render the list with a separator
+    return (
+      <>
+        {joinedCommunities.length > 0 && (
+          <>
+            <div className="community-separator">Your Communities</div>
+            {joinedCommunities.map((community) => (
+              <li key={community._id}>
+                <button
+                  className={`button ${
+                    selectedCommunityId === community._id
+                      ? "button-active"
+                      : "button"
+                  }`}
+                  onClick={() => {
+                    onPageChange("community", null, community._id);
+                  }}
+                >
+                  {community.name}
+                </button>
+              </li>
+            ))}
+          </>
+        )}
+
+        {otherCommunities.length > 0 && (
+          <>
+            <div className="community-separator">Other Communities</div>
+            {otherCommunities.map((community) => (
+              <li key={community._id}>
+                <button
+                  className={`button ${
+                    selectedCommunityId === community._id
+                      ? "button-active"
+                      : "button"
+                  }`}
+                  onClick={() => {
+                    onPageChange("community", null, community._id);
+                  }}
+                >
+                  {community.name}
+                </button>
+              </li>
+            ))}
+          </>
+        )}
+      </>
+    );
+  };
 
   return (
     <div className="sidebar">
@@ -67,24 +162,7 @@ export default function Sidebar({
         </button>
         <br />
         <ul id="community-list" className="community-list">
-          {modelService.data.communities.map((community) => (
-            <li key={community._id}>
-              <button
-                className={`button ${
-                  selectedCommunityId === community._id
-                    ? "button-active"
-                    : "button"
-                }`}
-                onClick={() => {
-                  // Pass the community information to the parent component
-                  onPageChange("community", null, community._id);
-                  console.log(`Selected community: ${community.name}`);
-                }}
-              >
-                {community.name}
-              </button>
-            </li>
-          ))}
+          {renderCommunityList()}
         </ul>
       </div>
     </div>

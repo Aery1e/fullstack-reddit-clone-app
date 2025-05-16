@@ -156,6 +156,13 @@ export default function TopBar({
                               userDisplayName
                             );
                             await modelService.refreshData();
+
+                            // Dispatch a custom event to notify the sidebar
+                            const event = new Event(
+                              "communityMembershipChanged"
+                            );
+                            window.dispatchEvent(event);
+
                             alert("Successfully left community!");
                             setRefreshKey((prev) => prev + 1);
                           } catch (err) {
@@ -181,6 +188,13 @@ export default function TopBar({
                               userDisplayName
                             );
                             await modelService.refreshData();
+
+                            // Dispatch a custom event to notify the sidebar
+                            const event = new Event(
+                              "communityMembershipChanged"
+                            );
+                            window.dispatchEvent(event);
+
                             alert("Successfully joined community!");
                             setRefreshKey((prev) => prev + 1);
                           } catch (err) {
