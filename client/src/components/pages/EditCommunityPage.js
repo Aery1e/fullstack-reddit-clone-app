@@ -50,6 +50,18 @@ export default function EditCommunityPage({ onPageChange, communityId }) {
       return;
     }
 
+    // Check if community name already exists (excluding the current community)
+    const existingCommunity = modelService.data.communities.find(
+      (community) =>
+        community.name.toLowerCase() === name.toLowerCase() &&
+        community._id !== communityId
+    );
+
+    if (existingCommunity) {
+      setError("A community with this name already exists.");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       setError("");
@@ -66,10 +78,20 @@ export default function EditCommunityPage({ onPageChange, communityId }) {
       // Navigate back to profile page
       onPageChange("profile");
     } catch (error) {
-      console.error("Error updating community:", error);
-      setError(
-        "An error occurred while updating the community. Please try again."
-      );
+      // Handle server-side duplicate name error
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message ===
+          "A community with this name already exists"
+      ) {
+        setError("A community with this name already exists.");
+      } else {
+        console.error("Error updating community:", error);
+        setError(
+          "An error occurred while updating the community. Please try again."
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }

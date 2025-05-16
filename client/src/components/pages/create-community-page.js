@@ -37,7 +37,7 @@ export default function CreateCommunityPage({ onPageChange }) {
   }
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Get user data from localStorage
@@ -59,23 +59,22 @@ export default function CreateCommunityPage({ onPageChange }) {
       return;
     }
 
-    try {
-      console.log(
-        "Before creating community - communities:",
-        modelService.data.communities.length
-      );
+    // Check if community name already exists
+    const existingCommunity = modelService.data.communities.find(
+      (community) => community.name.toLowerCase() === name.toLowerCase()
+    );
 
+    if (existingCommunity) {
+      alert("A community with this name already exists.");
+      return;
+    }
+
+    try {
       // Create the new community with user's display name
-      const newCommunityId = modelService.createCommunity(
+      await modelService.createCommunity(
         name,
         description,
         userData.displayName
-      );
-
-      console.log("Created new community:", newCommunityId);
-      console.log(
-        "After creating community - communities:",
-        modelService.data.communities.length
       );
 
       // Show success message
@@ -84,10 +83,20 @@ export default function CreateCommunityPage({ onPageChange }) {
       // Navigate back to home page
       onPageChange("home");
     } catch (error) {
-      console.error("Error creating community:", error);
-      alert(
-        "An error occurred while creating the community. Please try again."
-      );
+      // The server might also return a duplicate name error
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message ===
+          "A community with this name already exists"
+      ) {
+        alert("A community with this name already exists.");
+      } else {
+        console.error("Error creating community:", error);
+        alert(
+          "An error occurred while creating the community. Please try again."
+        );
+      }
     }
   };
 

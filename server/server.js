@@ -168,15 +168,21 @@ app.get("/api/communities/:id", async (req, res) => {
 });
 
 app.post("/api/communities", async (req, res) => {
-  const community = new Community({
-    name: req.body.name,
-    description: req.body.description,
-    postIDs: req.body.postIDs || [],
-    members: req.body.members || [],
-    createdBy: req.body.createdBy || req.body.members || [],
-  });
-
   try {
+    // Check if a community with this name already exists
+    const existingCommunity = await Community.findOne({ name: req.body.name });
+    if (existingCommunity) {
+      return res.status(400).json({ message: "A community with this name already exists" });
+    }
+
+    const community = new Community({
+      name: req.body.name,
+      description: req.body.description,
+      postIDs: req.body.postIDs || [],
+      members: req.body.members || [],
+      createdBy: req.body.createdBy || req.body.members || [],
+    });
+
     const newCommunity = await community.save();
     res.status(201).json(newCommunity);
   } catch (err) {
