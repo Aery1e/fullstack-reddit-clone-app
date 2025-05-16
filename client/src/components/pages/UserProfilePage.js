@@ -258,15 +258,14 @@ function UserProfilePage({ onPageChange }) {
   };
 
   const findPostForComment = (commentId) => {
+    // Store visited comment IDs to prevent infinite recursion
+    const visitedCommentIds = new Set();
+
     // Check direct post-comment relationships first
     for (const post of modelService.data.posts) {
       if (
         post.commentIDs &&
-        post.commentIDs.some(
-          (id) =>
-            // Handle different formats of IDs (string or ObjectId)
-            id.toString() === commentId.toString()
-        )
+        post.commentIDs.some((id) => id.toString() === commentId.toString())
       ) {
         return post;
       }
@@ -274,12 +273,21 @@ function UserProfilePage({ onPageChange }) {
 
     // If not found, it might be a reply to another comment
     // Try to find the parent comment and then trace back to the post
-    const findPostRecursively = (parentCommentId) => {
+    const findPostRecursively = (currentCommentId, depth = 0) => {
+      // Prevent infinite recursion
+      if (visitedCommentIds.has(currentCommentId.toString()) || depth > 10) {
+        return null;
+      }
+
+      visitedCommentIds.add(currentCommentId.toString());
+
       // Find parent comment
       const parentComment = modelService.data.comments.find(
         (c) =>
           c.commentIDs &&
-          c.commentIDs.some((id) => id.toString() === commentId.toString())
+          c.commentIDs.some(
+            (id) => id.toString() === currentCommentId.toString()
+          )
       );
 
       if (!parentComment) return null;
@@ -296,11 +304,11 @@ function UserProfilePage({ onPageChange }) {
         }
       }
 
-      // If not, recursively check the parent's parent
-      return findPostRecursively(parentComment._id);
+      // If not, recursively check the parent's parent with depth limit
+      return findPostRecursively(parentComment._id, depth + 1);
     };
 
-    return findPostRecursively();
+    return findPostRecursively(commentId);
   };
 
   if (loading)
